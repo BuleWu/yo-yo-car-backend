@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var secretKey = []byte
+var secretKey []byte
 
 func init() {
 	_ = godotenv.Load()
