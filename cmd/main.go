@@ -1,13 +1,16 @@
-package cmd
+package main
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"zavrsni/yo-yo-car/db"
 	"zavrsni/yo-yo-car/handlers"
 	"zavrsni/yo-yo-car/middleware"
 )
 
 func main() {
+	db.Connect()
+
 	r := gin.Default()
 
 	publicRoutes := r.Group("/public")
@@ -25,5 +28,4 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		fmt.Errorf("error while trying to run server: %v\n", err)
 	}
-
 }
