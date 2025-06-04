@@ -16,7 +16,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Check if credentials are valid (replace this logic with real authentication)
+	// TODO: replace this logic with real authentication
 	if user.Email == "email" && user.Password == "password" {
 		token, err := utils.GenerateToken(user.ID)
 		if err != nil {
