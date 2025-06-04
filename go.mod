@@ -1,3 +1,3 @@
-module zavrsni.com/za-za-car
+module zavrsni/yo-yo-car
 
 go 1.23.0
