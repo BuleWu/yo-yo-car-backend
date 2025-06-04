@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"os"
 	"time"
@@ -19,7 +20,7 @@ func init() {
 	secretKey = []byte(key)
 }
 
-func GenerateToken(userID uint) (string, error) {
+func GenerateToken(userID uuid.UUID) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["user_id"] = userID
 	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
