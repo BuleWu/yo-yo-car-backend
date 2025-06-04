@@ -37,7 +37,13 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
 	}
 
+	hashedPassword, _ := utils.HashPassword(user.Password)
+
 	user.ID = uuid.New()
+	user.Password = hashedPassword
+
+	// TODO: Save user to database and check if already exists
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User registered successfully",
 		"user":    user,
