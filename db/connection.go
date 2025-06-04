@@ -4,22 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"zavrsni/yo-yo-car/runtimebag"
+	"zavrsni/yo-yo-car/shared/constants"
 )
 
-// TODO: get from env
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "admin"
-	dbname   = "yo_yo_car"
+var (
+	host     = runtimebag.GetEnvString(constants.DatabaseHost, "")
+	port     = runtimebag.GetEnvString(constants.DatabasePort, "")
+	user     = runtimebag.GetEnvString(constants.DatabaseUser, "")
+	password = runtimebag.GetEnvString(constants.DatabasePassword, "")
+	dbname   = runtimebag.GetEnvString(constants.DatabaseName, "")
 )
 
 func Connect() {
+	fmt.Println("Env string: ", host)
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := sql.Open(runtimebag.GetEnvString(constants.DatabaseDriver, ""), psqlInfo)
 
 	if err != nil {
 		panic(err)
