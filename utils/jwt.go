@@ -3,10 +3,21 @@ package utils
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
+	"os"
 	"time"
 )
 
-var secretKey = []byte("secretpassword")
+var secretKey = []byte
+
+func init() {
+	_ = godotenv.Load()
+	key := os.Getenv("JWT_SECRET")
+	if key == "" {
+		panic("JWT_SECRET not set in environment")
+	}
+	secretKey = []byte(key)
+}
 
 func GenerateToken(userID uint) (string, error) {
 	claims := jwt.MapClaims{}
