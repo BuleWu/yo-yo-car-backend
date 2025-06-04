@@ -10,6 +10,7 @@ import (
 func GetEnvString(key, defaultValue string) string {
 	fmt.Println("Key: ", key)
 	fmt.Println("Val: ", os.Getenv(key))
+	fmt.Println("Val: ", os.Getenv("DB_HOST"))
 
 	if x := os.Getenv(key); x != "" {
 		return x
