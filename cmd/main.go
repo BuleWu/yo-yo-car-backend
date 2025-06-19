@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
-	"zavrsni/yo-yo-car/db"
+	"zavrsni/yo-yo-car/database"
 	"zavrsni/yo-yo-car/handlers"
 	"zavrsni/yo-yo-car/middleware"
 	"zavrsni/yo-yo-car/runtimebag"
@@ -18,16 +18,17 @@ func main() {
 		log.Println("Error loading .env file...")
 	}
 
-	var (
-		host     = runtimebag.GetEnvString(constants.DatabaseHost, "")
-		port     = runtimebag.GetEnvString(constants.DatabasePort, "")
-		user     = runtimebag.GetEnvString(constants.DatabaseUser, "")
-		password = runtimebag.GetEnvString(constants.DatabasePassword, "")
-		database = runtimebag.GetEnvString(constants.DatabaseName, "")
-		driver   = runtimebag.GetEnvString(constants.DatabaseDriver, "")
+	_, err = database.NewConnection(
+		runtimebag.GetEnvString(constants.DatabaseHost, ""),
+		runtimebag.GetEnvString(constants.DatabasePort, ""),
+		runtimebag.GetEnvString(constants.DatabaseUser, ""),
+		runtimebag.GetEnvString(constants.DatabasePassword, ""),
+		runtimebag.GetEnvString(constants.DatabaseName, ""),
 	)
 
-	db.Connect(host, port, user, password, database, driver)
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 
@@ -43,7 +44,7 @@ func main() {
 		// Protected routes here
 	}
 
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run("localhost:8080"); err != nil {
 		fmt.Errorf("error while trying to run server: %v\n", err)
 	}
 }
