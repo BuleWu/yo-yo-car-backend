@@ -1,12 +1,14 @@
 package repositories
 
 import (
+	"fmt"
 	"zavrsni/yo-yo-car/database"
 	"zavrsni/yo-yo-car/models"
 )
 
 type UserRepository interface {
 	Persist(user *models.User) (*models.User, error)
+	Get(ID string) (*models.User, error)
 }
 
 type User struct {
@@ -19,4 +21,15 @@ func (repo *User) Persist(record *models.User) (*models.User, error) {
 		return nil, err
 	}
 	return record, nil
+}
+
+// Get user by id
+func (repo *User) Get(ID string) (*models.User, error) {
+	var record models.User
+	db := repo.conn.GetConnection()
+	err := db.First(&record, "id = ?", ID).Error
+	if err != nil {
+		return nil, fmt.Errorf("user with id: %s was not found", ID)
+	}
+	return &record, nil
 }
