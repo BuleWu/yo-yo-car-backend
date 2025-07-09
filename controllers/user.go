@@ -25,3 +25,6 @@ func (c User) GetUser(ctx *gin.Context) {
 
 	c.returnJSON(ctx, data, http.StatusOK)
 }
+
+func (c User) CreateUser(ctx *gin.Context) {
+}
