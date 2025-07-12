@@ -20,6 +20,16 @@ type User struct {
 	userRepository repositories.UserRepository
 }
 
+func (a *User) GetUser(userId string) (interface{}, Exception) {
+	user, err := a.userRepository.Get(userId)
+
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return user, nil
+}
+
 type CreateUserRequest struct {
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name"`

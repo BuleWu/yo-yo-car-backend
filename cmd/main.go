@@ -8,7 +8,6 @@ import (
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/controllers"
 	"zavrsni/yo-yo-car/database"
-	"zavrsni/yo-yo-car/middleware"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/runtimebag"
 	"zavrsni/yo-yo-car/shared/constants"
@@ -53,13 +52,14 @@ func main() {
 		//publicRoutes.POST("/user", userController.CreateUser)
 	}*/
 
-	protectedRoutes := r.Group("/protected")
+	/*protectedRoutes := r.Group("/protected")
 	protectedRoutes.Use(middleware.AuthenticationMiddleware())
 	{
 		// Protected routes here
-	}
+	}*/
 
-	r.POST("/user", userController.CreateUser)
+	r.GET("/api/user/:id", userController.GetUser)
+	r.POST("/api/user", userController.CreateUser)
 
 	if err := r.Run("localhost:8080"); err != nil {
 		fmt.Errorf("error while trying to run server: %v\n", err)
