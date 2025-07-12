@@ -6,6 +6,12 @@ import (
 	"zavrsni/yo-yo-car/models"
 )
 
+func NewUserRepository(db *database.Connection) UserRepository {
+	return &User{
+		conn: db,
+	}
+}
+
 type UserRepository interface {
 	Persist(user *models.User) (*models.User, error)
 	Get(ID string) (*models.User, error)

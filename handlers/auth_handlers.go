@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
-	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/utils"
 )
 
@@ -44,7 +43,7 @@ func Register(c *gin.Context) {
 	user.Password = hashedPassword
 
 	// TODO: Save user to database and check if already exists
-	user, err = repositories.UserRepository()
+	
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User registered successfully",
 		"user":    user,

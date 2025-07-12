@@ -1,6 +1,42 @@
 package applications
 
-import "zavrsni/yo-yo-car/models"
+import (
+	"github.com/google/uuid"
+	"net/http"
+	"zavrsni/yo-yo-car/models"
+	"zavrsni/yo-yo-car/repositories"
+)
 
-/**/
-func (a *models.User) CreateUser(request *CreateUserRequest) (interface{}, Exception) {}
+func NewUserApplication(
+	userRepository repositories.UserRepository,
+) *User {
+	return &User{
+		userRepository: userRepository,
+	}
+}
+
+type User struct {
+	Application
+	userRepository repositories.UserRepository
+}
+
+type CreateUserRequest struct {
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+}
+
+/*CreateUser is the User controller method that handles the POST request*/
+func (a *User) CreateUser(request *CreateUserRequest) (interface{}, Exception) {
+	user := models.NewUser(uuid.NewString())
+	user.FirstName = request.FirstName
+	user.LastName = request.LastName
+	user.Email = request.Email
+	user.Password = request.Password
+	user, err := a.userRepository.Persist(user)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+	return user, nil
+}
