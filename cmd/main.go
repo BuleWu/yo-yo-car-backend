@@ -58,8 +58,12 @@ func main() {
 		// Protected routes here
 	}*/
 
-	r.GET("/api/user/:id", userController.GetUser)
-	r.POST("/api/user", userController.CreateUser)
+	apiRoutes := r.Group("/api")
+	{
+		apiRoutes.GET("/user/:id", userController.GetUser)
+		apiRoutes.POST("/user", userController.CreateUser)
+		apiRoutes.DELETE("/user/:id", userController.DeleteUser)
+	}
 
 	if err := r.Run("localhost:8080"); err != nil {
 		fmt.Errorf("error while trying to run server: %v\n", err)

@@ -23,16 +23,15 @@ type User struct {
 
 /*GetUser is the UserController method that handles the GET request */
 func (c User) GetUser(ctx *gin.Context) {
-
 	userId := ctx.Param("id")
-	data, err := c.userApplication.GetUser(userId)
+	user, err := c.userApplication.GetUser(userId)
 
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("unable to get user"), http.StatusInternalServerError)
 		return
 	}
 
-	c.returnJSON(ctx, data, http.StatusOK)
+	c.returnJSON(ctx, user, http.StatusOK)
 }
 
 func (c User) CreateUser(ctx *gin.Context) {
@@ -47,6 +46,18 @@ func (c User) CreateUser(ctx *gin.Context) {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}
-	c.returnJSON(ctx, data, http.StatusOK)
+	c.returnJSON(ctx, data, http.StatusCreated)
 	return
+}
+
+func (c User) DeleteUser(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	appErr := c.userApplication.DeleteUser(userId)
+
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, "deleted", http.StatusOK)
 }

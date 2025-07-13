@@ -50,3 +50,13 @@ func (a *User) CreateUser(request *CreateUserRequest) (interface{}, Exception) {
 	}
 	return user, nil
 }
+
+func (a *User) DeleteUser(userId string) Exception {
+	err := a.userRepository.Delete(userId)
+
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return nil
+}
