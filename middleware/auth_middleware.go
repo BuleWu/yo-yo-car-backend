@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-	"zavrsni/yo-yo-car/utils"
+	"zavrsni/yo-yo-car/core/utils"
 )
 
 func AuthenticationMiddleware() gin.HandlerFunc {

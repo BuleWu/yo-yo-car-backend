@@ -20,8 +20,18 @@ type User struct {
 	userRepository repositories.UserRepository
 }
 
-func (a *User) GetUser(userId string) (interface{}, Exception) {
-	user, err := a.userRepository.Get(userId)
+func (a *User) GetUserById(userId string) (*models.User, Exception) {
+	user, err := a.userRepository.GetById(userId)
+
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return user, nil
+}
+
+func (a *User) GetUserByEmail(email string) (*models.User, Exception) {
+	user, err := a.userRepository.GetByEmail(email)
 
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
@@ -38,7 +48,7 @@ type CreateUserRequest struct {
 }
 
 /*CreateUser is the User controller method that handles the POST request*/
-func (a *User) CreateUser(request *CreateUserRequest) (interface{}, Exception) {
+func (a *User) CreateUser(request *CreateUserRequest) (*models.User, Exception) {
 	user := models.NewUser(uuid.NewString())
 	user.FirstName = request.FirstName
 	user.LastName = request.LastName

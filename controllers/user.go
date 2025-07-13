@@ -24,7 +24,7 @@ type User struct {
 /*GetUser is the UserController method that handles the GET request */
 func (c User) GetUser(ctx *gin.Context) {
 	userId := ctx.Param("id")
-	user, err := c.userApplication.GetUser(userId)
+	user, err := c.userApplication.GetUserById(userId)
 
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("unable to get user"), http.StatusInternalServerError)

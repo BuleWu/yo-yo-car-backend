@@ -14,7 +14,8 @@ func NewUserRepository(db *database.Connection) UserRepository {
 
 type UserRepository interface {
 	Persist(user *models.User) (*models.User, error)
-	Get(ID string) (*models.User, error)
+	GetById(ID string) (*models.User, error)
+	GetByEmail(email string) (*models.User, error)
 	Delete(ID string) error
 }
 
@@ -22,13 +23,24 @@ type User struct {
 	conn *database.Connection
 }
 
-// Get user by id
-func (repo *User) Get(ID string) (*models.User, error) {
+// GetById Get user by id
+func (repo *User) GetById(ID string) (*models.User, error) {
 	var record models.User
 	db := repo.conn.GetConnection()
 	err := db.First(&record, "id = ?", ID).Error
 	if err != nil {
 		return nil, fmt.Errorf("user with id: %s was not found", ID)
+	}
+	return &record, nil
+}
+
+// GetByEmail Get user by email
+func (repo *User) GetByEmail(email string) (*models.User, error) {
+	var record models.User
+	db := repo.conn.GetConnection()
+	err := db.First(&record, "email = ?", email).Error
+	if err != nil {
+		return nil, fmt.Errorf("user with email %s was not found", email)
 	}
 	return &record, nil
 }

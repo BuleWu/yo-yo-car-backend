@@ -1,0 +1,32 @@
+# Zavrsni
+
+###
+# @name Create user
+POST http://{{hostname}}:8080/api/user
+Content-Type: application/json
+
+{
+  "first_name": "Mali",
+  "last_name": "Sale",
+  "email": "malisale@gmail.com",
+  "password": "23898745"
+}
+
+###
+# @name Get user
+GET http://{{hostname}}:8080/api/user/eb302e38-b103-4dc2-9e93-72896a7c50d8
+
+###
+# @name Delete user
+DELETE http://{{hostname}}:8080/api/user/eb302e38-b103-4dc2-9e93-72896a7c50d8
+
+###
+# @name User login
+POST http://{{hostname}}:8080/auth/login
+Content-Type: application/json
+
+{
+  "id": "d832e9d4-69a5-429f-ae9c-69c91bd47650",
+  "email": "email",
+  "password": "password"
+}

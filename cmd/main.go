@@ -15,6 +15,7 @@ import (
 
 var (
 	userController *controllers.User
+	authController *controllers.Auth
 	conn           *database.Connection
 )
 
@@ -43,6 +44,10 @@ func main() {
 		userApplication,
 	)
 
+	authController := controllers.NewAuthController(
+		userApplication,
+	)
+
 	r := gin.Default()
 
 	/*publicRoutes := r.Group("/public")
@@ -57,6 +62,11 @@ func main() {
 	{
 		// Protected routes here
 	}*/
+	authRoutes := r.Group("/auth")
+	{
+		/*authRoutes.POST("/login", authController.Login)*/
+		authRoutes.POST("/register", authController.Register)
+	}
 
 	apiRoutes := r.Group("/api")
 	{
