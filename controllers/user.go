@@ -1,0 +1,63 @@
+package controllers
+
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"zavrsni/yo-yo-car/applications"
+	"zavrsni/yo-yo-car/core/utils"
+)
+
+// NewUserController user Controller Constructor that handles dependency injection
+func NewUserController(
+	userApplication *applications.User,
+) *User {
+	return &User{
+		userApplication: userApplication,
+	}
+}
+
+type User struct {
+	Controller
+	userApplication *applications.User
+}
+
+/*GetUser is the UserController method that handles the GET request */
+func (c User) GetUser(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	user, err := c.userApplication.GetUserById(userId)
+
+	if err != nil {
+		c.returnJSON(ctx, utils.NewHttpError("unable to get user"), http.StatusInternalServerError)
+		return
+	}
+
+	c.returnJSON(ctx, user, http.StatusOK)
+}
+
+func (c User) CreateUser(ctx *gin.Context) {
+	var request applications.CreateUserRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	data, appErr := c.userApplication.CreateUser(&request)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+	c.returnJSON(ctx, data, http.StatusCreated)
+	return
+}
+
+func (c User) DeleteUser(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	appErr := c.userApplication.DeleteUser(userId)
+
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, "deleted", http.StatusOK)
+}
