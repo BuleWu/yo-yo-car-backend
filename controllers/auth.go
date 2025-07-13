@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
@@ -21,9 +20,9 @@ type Auth struct {
 	userApplication *applications.User
 }
 
-/*func (c Auth) Login(ctx *gin.Context) {
+func (c Auth) Login(ctx *gin.Context) {
 	var credentials struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 	var token string
@@ -34,28 +33,24 @@ type Auth struct {
 	}
 
 	user, err := c.userApplication.GetUserByEmail(credentials.Email)
-	if err != nil {
+	if err != nil || user == nil {
 		c.returnJSON(ctx, utils.NewHttpError("Invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
-	if !utils.VerifyPassword(credentials.Password, user.Password) {
-		c.returnJSON(ctx, utils.NewHttpError("Invalid credentials"), http.StatusUnauthorized)
+	if !utils.VerifyPassword(user.Password, credentials.Password) {
+		c.returnJSON(ctx, utils.NewHttpError("invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
-	fmt.Println("The user email: ", credentials.Email)
-	fmt.Println("The user password: ", credentials.Password)
-
-	token, err := utils.GenerateToken(user.ID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
-		c.returnJSON(ctx, , http.StatusInternalServerError)
+	token, appErr := utils.GenerateToken(user.ID)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError("error generating token"), http.StatusInternalServerError)
 		return
 	}
 
 	c.returnJSON(ctx, token, http.StatusOK)
-}*/
+}
 
 func (c Auth) Register(ctx *gin.Context) {
 	var credentials struct {
@@ -76,9 +71,6 @@ func (c Auth) Register(ctx *gin.Context) {
 		c.returnJSON(ctx, utils.NewHttpError("a user with this email already exists"), http.StatusNotAcceptable)
 		return
 	}
-
-	fmt.Println("User email: ", credentials.Email)
-	fmt.Println("User pass: ", credentials.Password)
 
 	if len(credentials.Password) < 8 {
 		c.returnJSON(ctx, utils.NewHttpError("the user password needs to be at least 8 characters long"), http.StatusNotAcceptable)

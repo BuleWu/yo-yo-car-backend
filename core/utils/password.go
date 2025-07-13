@@ -10,9 +10,10 @@ func HashPassword(password string) (string, error) {
 	return string(hash), err
 }
 
-func VerifyPassword(hashed string, raw_pwd []byte) bool {
+func VerifyPassword(hashed string, rawPwd string) bool {
 	bytehash := []byte(hashed)
-	err := bcrypt.CompareHashAndPassword(bytehash, raw_pwd)
+	byteRawPwd := []byte(rawPwd)
+	err := bcrypt.CompareHashAndPassword(bytehash, byteRawPwd)
 
 	if err != nil {
 		log.Println(err)

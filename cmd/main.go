@@ -64,7 +64,7 @@ func main() {
 	}*/
 	authRoutes := r.Group("/auth")
 	{
-		/*authRoutes.POST("/login", authController.Login)*/
+		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
 	}
 
