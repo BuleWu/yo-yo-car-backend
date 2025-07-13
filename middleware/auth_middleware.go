@@ -28,6 +28,7 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 		claims, err := utils.VerifyToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authentication token"})
+			return
 		}
 
 		c.Set("user_id", claims["user_id"])

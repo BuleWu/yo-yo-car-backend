@@ -9,5 +9,5 @@ type Model struct {
 	ID        string `gorm:"type:char(36);primaryKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedA  gorm.DeletedAt `gorm:"index"`
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
