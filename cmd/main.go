@@ -65,7 +65,11 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+		/*authRoutes.POST("/auth/google/login", )
+		authRoutes.POST("/auth/google/callback", )*/
 	}
+
+	/*TODO: maybe add a profile endpoint*/
 
 	apiRoutes := r.Group("/api")
 	{
