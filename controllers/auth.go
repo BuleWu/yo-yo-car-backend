@@ -1,11 +1,30 @@
 package controllers
 
 import (
+	"context"
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/core/utils"
 )
+
+var googleOAuthConfig = &oauth2.Config{
+	RedirectURL:  "http://localhost:8080/auth/google/callback",
+	ClientID:     "{PATTERN}.apps.googleusercontent.com",
+	ClientSecret: "{SECRET}",
+	Scopes: []string{
+		"https://www.googleapis.com/auth/userinfo.email",
+		/*"",*/
+	},
+	Endpoint: google.Endpoint,
+}
 
 func NewAuthController(
 	userApplication *applications.User,
@@ -93,4 +112,59 @@ func (c Auth) Register(ctx *gin.Context) {
 	}
 
 	c.returnJSON(ctx, utils.NewHttpError("registered successfully"), http.StatusOK)
+}
+
+func (c Auth) oauthGoogleLogin(ctx *gin.Context) {
+	oauthState, err := generateStateOAuthCookie(ctx)
+	if err != nil {
+		c.returnJSON(ctx, utils.NewHttpError("unable to generate state oauth cookie"), http.StatusInternalServerError)
+	}
+
+	u := googleOAuthConfig.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	ctx.Redirect(http.StatusTemporaryRedirect, u)
+}
+
+type TestRequest struct {
+	Code string `json:"code"`
+}
+
+func oauthGoogleCallback(ctx *gin.Context, request TestRequest) {
+	data, err := getUserDataFromGoogle(request.Code)
+	if err != nil {
+		ctx.Redirect(http.StatusTemporaryRedirect, "/") /*TODO: may need to change location*/
+		return
+	}
+	fmt.Println("Userinfo: ", data)
+}
+
+func generateStateOAuthCookie(ctx *gin.Context) (string, error) {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+
+	state := base64.URLEncoding.EncodeToString(b)
+
+	return state, nil
+}
+
+func getUserDataFromGoogle(code string) ([]byte, error) {
+	token, err := googleOAuthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		return nil, fmt.Errorf("code exchange went wrong: %s", err.Error())
+	}
+
+	response, err := http.Get(oauthGoogleURLAPI + token.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
+	}
+	defer response.Body.Close()
+	contents, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %s", err.Error())
+	}
+
+	// TODO: save user and token
+	return contents, nil
 }
