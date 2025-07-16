@@ -122,7 +122,7 @@ func (c Auth) Register(ctx *gin.Context) {
 }
 
 func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
-	oauthState, err := generateStateOAuthCookie()
+	oauthState, err := generateStateOAuthCookie(ctx)
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("unable to generate state oauth cookie"), http.StatusInternalServerError)
 		return
