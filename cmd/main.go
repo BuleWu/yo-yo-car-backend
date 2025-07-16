@@ -65,8 +65,8 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
-		/*authRoutes.POST("/auth/google/login", )
-		authRoutes.POST("/auth/google/callback", )*/
+		authRoutes.GET("/google/login", authController.OauthGoogleLogin)
+		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
 	/*TODO: maybe add a profile endpoint*/

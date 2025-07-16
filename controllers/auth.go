@@ -4,24 +4,25 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/core/utils"
+	"zavrsni/yo-yo-car/runtimebag"
 )
 
 var googleOAuthConfig = &oauth2.Config{
 	RedirectURL:  "http://localhost:8080/auth/google/callback",
-	ClientID:     "{PATTERN}.apps.googleusercontent.com",
-	ClientSecret: "{SECRET}",
+	ClientID:     runtimebag.GetEnvString("GOOGLE_CLIENT_ID", ""),
+	ClientSecret: runtimebag.GetEnvString("GOOGLE_CLIENT_SECRET", ""),
 	Scopes: []string{
 		"https://www.googleapis.com/auth/userinfo.email",
-		/*"",*/
+		"https://www.googleapis.com/auth/userinfo.profile",
 	},
 	Endpoint: google.Endpoint,
 }
@@ -114,13 +115,13 @@ func (c Auth) Register(ctx *gin.Context) {
 	c.returnJSON(ctx, utils.NewHttpError("registered successfully"), http.StatusOK)
 }
 
-func (c Auth) oauthGoogleLogin(ctx *gin.Context) {
-	oauthState, err := generateStateOAuthCookie(ctx)
+func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
+	oauthState, err := generateStateOAuthCookie()
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("unable to generate state oauth cookie"), http.StatusInternalServerError)
 	}
 
-	u := googleOAuthConfig.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	u := googleOAuthConfig.AuthCodeURL(oauthState, oauth2.AccessTypeOnline, oauth2.ApprovalForce)
 	ctx.Redirect(http.StatusTemporaryRedirect, u)
 }
 
@@ -128,16 +129,50 @@ type TestRequest struct {
 	Code string `json:"code"`
 }
 
-func oauthGoogleCallback(ctx *gin.Context, request TestRequest) {
-	data, err := getUserDataFromGoogle(request.Code)
+func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
+	code := ctx.Query("code")
+
+	data, err := getUserDataFromGoogle(code)
 	if err != nil {
-		ctx.Redirect(http.StatusTemporaryRedirect, "/") /*TODO: may need to change location*/
+		ctx.Redirect(http.StatusTemporaryRedirect, "/welcome")
 		return
 	}
-	fmt.Println("Userinfo: ", data)
+
+	fmt.Println("User data", string(data))
+
+	type googleUserData struct {
+		Id            string `json:"id"`
+		Email         string `json:"email"`
+		VerifiedEmail bool   `json:"verified_email"`
+		Name          string `json:"name"`
+		GivenName     string `json:"given_name"`
+		FamilyName    string `json:"family_name"`
+		Picture       string `json:"picture"`
+	}
+
+	var userData googleUserData
+
+	if err = json.Unmarshal(data, &userData); err != nil {
+		c.returnJSON(ctx, utils.NewHttpError("unable to unmarshal the user data"), http.StatusInternalServerError)
+		return
+	}
+
+	user, _ := c.userApplication.GetUserByEmail(userData.Email)
+
+	var request = &applications.CreateUserRequest{
+		FirstName: userData.FamilyName,
+		LastName:  userData.GivenName,
+		Email:     userData.Email,
+		Password:  "",
+	}
+
+	if user == nil {
+		c.userApplication.CreateUser(request)
+		return
+	}
 }
 
-func generateStateOAuthCookie(ctx *gin.Context) (string, error) {
+func generateStateOAuthCookie() (string, error) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {
@@ -155,7 +190,7 @@ func getUserDataFromGoogle(code string) ([]byte, error) {
 		return nil, fmt.Errorf("code exchange went wrong: %s", err.Error())
 	}
 
-	response, err := http.Get(oauthGoogleURLAPI + token.AccessToken)
+	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
@@ -165,6 +200,5 @@ func getUserDataFromGoogle(code string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to read response: %s", err.Error())
 	}
 
-	// TODO: save user and token
 	return contents, nil
 }
