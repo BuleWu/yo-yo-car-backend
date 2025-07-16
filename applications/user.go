@@ -45,6 +45,7 @@ type CreateUserRequest struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
+	Provider  string `json:"provider"`
 }
 
 /*CreateUser is the User controller method that handles the POST request*/

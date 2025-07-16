@@ -58,6 +58,11 @@ func (c Auth) Login(ctx *gin.Context) {
 		return
 	}
 
+	if user.Provider != "local" {
+		c.returnJSON(ctx, utils.NewHttpError("Please use Google login"), http.StatusUnauthorized)
+		return
+	}
+
 	if !utils.VerifyPassword(user.Password, credentials.Password) {
 		c.returnJSON(ctx, utils.NewHttpError("invalid credentials"), http.StatusUnauthorized)
 		return
@@ -104,6 +109,7 @@ func (c Auth) Register(ctx *gin.Context) {
 		LastName:  credentials.LastName,
 		Email:     credentials.Email,
 		Password:  hashedPassword,
+		Provider:  "local",
 	}
 
 	user, appErr := c.userApplication.CreateUser(req)
@@ -119,6 +125,7 @@ func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
 	oauthState, err := generateStateOAuthCookie()
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("unable to generate state oauth cookie"), http.StatusInternalServerError)
+		return
 	}
 
 	u := googleOAuthConfig.AuthCodeURL(oauthState, oauth2.AccessTypeOnline, oauth2.ApprovalForce)
@@ -157,6 +164,11 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 		return
 	}
 
+	if !userData.VerifiedEmail {
+		c.returnJSON(ctx, utils.NewHttpError("unverified Google account"), http.StatusUnauthorized)
+		return
+	}
+
 	user, _ := c.userApplication.GetUserByEmail(userData.Email)
 
 	var request = &applications.CreateUserRequest{
@@ -164,12 +176,22 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 		LastName:  userData.GivenName,
 		Email:     userData.Email,
 		Password:  "",
+		Provider:  "google",
 	}
 
+	var appErr applications.Exception
+
 	if user == nil {
-		c.userApplication.CreateUser(request)
-		return
+		user, appErr = c.userApplication.CreateUser(request)
+		if appErr != nil {
+			c.returnJSON(ctx, appErr.GetMessage(), appErr.GetCode())
+			return
+		}
 	}
+
+	token, err := utils.GenerateToken(user.ID)
+
+	c.returnJSON(ctx, token, http.StatusOK)
 }
 
 func generateStateOAuthCookie() (string, error) {
