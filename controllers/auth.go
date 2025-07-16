@@ -122,7 +122,8 @@ func (c Auth) Register(ctx *gin.Context) {
 }
 
 func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
-	oauthState, err := generateStateOAuthCookie(ctx)
+	oauthState, err := generateStateOAuthCookie()
+
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("unable to generate state oauth cookie"), http.StatusInternalServerError)
 		return
@@ -130,10 +131,6 @@ func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
 
 	u := googleOAuthConfig.AuthCodeURL(oauthState, oauth2.AccessTypeOnline, oauth2.ApprovalForce)
 	ctx.Redirect(http.StatusTemporaryRedirect, u)
-}
-
-type TestRequest struct {
-	Code string `json:"code"`
 }
 
 func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
@@ -144,8 +141,6 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 		ctx.Redirect(http.StatusTemporaryRedirect, "/welcome")
 		return
 	}
-
-	fmt.Println("User data", string(data))
 
 	type googleUserData struct {
 		Id            string `json:"id"`
@@ -172,8 +167,8 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 	user, _ := c.userApplication.GetUserByEmail(userData.Email)
 
 	var request = &applications.CreateUserRequest{
-		FirstName: userData.FamilyName,
-		LastName:  userData.GivenName,
+		FirstName: userData.GivenName,
+		LastName:  userData.FamilyName,
 		Email:     userData.Email,
 		Password:  "",
 		Provider:  "google",
@@ -212,7 +207,15 @@ func getUserDataFromGoogle(code string) ([]byte, error) {
 		return nil, fmt.Errorf("code exchange went wrong: %s", err.Error())
 	}
 
-	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
+	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v2/userinfo", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating http request: %s", err.Error())
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+
+	client := &http.Client{}
+	response, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}

@@ -69,8 +69,6 @@ func main() {
 		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
-	/*TODO: maybe add a profile endpoint*/
-
 	apiRoutes := r.Group("/api")
 	{
 		apiRoutes.GET("/user/:id", userController.GetUser)
