@@ -45,6 +45,7 @@ type CreateUserRequest struct {
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
+	Provider  string `json:"provider"`
 }
 
 /*CreateUser is the User controller method that handles the POST request*/
@@ -54,6 +55,7 @@ func (a *User) CreateUser(request *CreateUserRequest) (*models.User, Exception) 
 	user.LastName = request.LastName
 	user.Email = request.Email
 	user.Password = request.Password
+	user.Provider = request.Provider
 	user, err := a.userRepository.Persist(user)
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)

@@ -65,6 +65,8 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.GET("/google/login", authController.OauthGoogleLogin)
+		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
 	apiRoutes := r.Group("/api")
