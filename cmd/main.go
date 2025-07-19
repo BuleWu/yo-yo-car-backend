@@ -1,9 +1,11 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
+	"time"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/controllers"
 	"zavrsni/yo-yo-car/database"
@@ -48,6 +50,16 @@ func main() {
 	)
 
 	r := gin.Default()
+
+	config := cors.Config{
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+		AllowAllOrigins:  true,
+	}
+
+	r.Use(cors.New(config))
 
 	/*publicRoutes := r.Group("/public")
 	{
