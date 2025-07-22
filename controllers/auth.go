@@ -144,7 +144,9 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 
 	data, err := getUserDataFromGoogle(code)
 	if err != nil {
-		ctx.Redirect(http.StatusTemporaryRedirect, "")
+		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+		redirectURL := fmt.Sprintf("%s/error?message=oauth_callback_failed", frontendUrl)
+		ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
 	}
 
@@ -192,7 +194,8 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 
 	token, err := utils.GenerateToken(user.ID)
 
-	redirectURL := fmt.Sprintf("http://localhost:4200/auth/callback?token=%s", token)
+	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+	redirectURL := fmt.Sprintf("%s/auth/callback?token=%s", frontendUrl, token)
 	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 

@@ -94,8 +94,8 @@ func main() {
 	ctx := context.Background()
 
 	credentialsFile := runtimebag.GetEnvString("GOOGLE_APPLICATION_CREDENTIALS", "")
-	projectID := "yoyo-car-no2"
-	storageBucket := "yoyo-car-no2.firebasestorage.app"
+	projectID := runtimebag.GetEnvString("FIREBASE_PROJECT_ID", "")
+	storageBucket := runtimebag.GetEnvString("FIREBASE_STORAGE_BUCKET", "")
 
 	firebase.InitFirebase(ctx, credentialsFile, projectID, storageBucket)
 	defer firebase.Client.Close()
