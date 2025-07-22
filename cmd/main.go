@@ -94,10 +94,11 @@ func main() {
 	ctx := context.Background()
 
 	credentialsFile := runtimebag.GetEnvString("GOOGLE_APPLICATION_CREDENTIALS", "")
-	projectID := "yoyo-car-app"
+	projectID := "yoyo-car-no2"
+	storageBucket := "yoyo-car-no2.firebasestorage.app"
 
-	fb := firebase.InitFirebase(ctx, credentialsFile, projectID)
-	defer fb.Client.Close()
+	firebase.InitFirebase(ctx, credentialsFile, projectID, storageBucket)
+	defer firebase.Client.Close()
 
 	if err := r.Run("localhost:8080"); err != nil {
 		log.Fatalf("error while trying to run server: %v\n", err)

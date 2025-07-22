@@ -32,6 +32,6 @@ func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, use
 		return "", err
 	}
 
-	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucket.Name(), objectPath)
+	url := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucket.BucketName(), objectPath)
 	return url, nil
 }

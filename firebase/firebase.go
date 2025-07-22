@@ -3,27 +3,34 @@ package firebase
 import (
 	"cloud.google.com/go/firestore"
 	"context"
-	"firebase.google.com/go"
+	firebaseSDK "firebase.google.com/go"
 	"google.golang.org/api/option"
 	"log"
 )
 
-var App *firebase.App
-var Firestore *firestore.Client
+var (
+	App    *firebaseSDK.App
+	Client *firestore.Client
+)
 
-func InitFirebase(ctx context.Context, credentialsFile string, projectID string) {
-	conf := &firebase.Config{ProjectID: projectID}
+func InitFirebase(ctx context.Context, credentialsFile string, projectID string, storageBucket string) {
+	conf := &firebaseSDK.Config{
+		ProjectID:     projectID,
+		StorageBucket: storageBucket,
+	}
+
 	opt := option.WithCredentialsFile(credentialsFile)
 
-	app, err := firebase.NewApp(ctx, conf, opt)
+	app, err := firebaseSDK.NewApp(ctx, conf, opt)
 	if err != nil {
-		log.Fatalf("error initializing firebase app: %v", err)
+		log.Fatalln(err)
 	}
-	App = app
 
 	client, err := app.Firestore(ctx)
 	if err != nil {
-		log.Fatalf("error initializing Firestore client: %v", err)
+		log.Fatalln(err)
 	}
-	Firestore = client
+
+	App = app
+	Client = client
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
+	"zavrsni/yo-yo-car/shared/storage"
 )
 
 func NewUserApplication(
@@ -72,17 +73,16 @@ func (a *User) DeleteUser(userId string) Exception {
 	}
 
 	return nil
-}¸
+}
 
-func (u *User) UploadProfilePicture(userID string, file multipart.File, header *multipart.FileHeader) (string, *errors.ApplicationError) {
+func (u *User) UploadProfilePicture(userID string, file multipart.File, header *multipart.FileHeader) (string, Exception) {
 	url, err := storage.UploadProfilePicture(file, header, userID)
 	if err != nil {
-		return "", errors.NewInternalServerError("failed to upload profile picture")
+		return "", NewApplicationException(http.StatusInternalServerError, err)
 	}
 
-	// Optional: Save URL to user record
 	if err := u.userRepository.UpdateProfilePicture(userID, url); err != nil {
-		return "", errors.NewInternalServerError("failed to update user with profile picture URL")
+		return "", NewApplicationException(http.StatusInternalServerError, err)
 	}
 
 	return url, nil

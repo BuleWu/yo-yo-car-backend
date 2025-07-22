@@ -52,8 +52,8 @@ func (c Auth) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.userApplication.GetUserByEmail(credentials.Email)
-	if err != nil || user == nil {
+	user, appErr := c.userApplication.GetUserByEmail(credentials.Email)
+	if appErr != nil || user == nil {
 		c.returnJSON(ctx, utils.NewHttpError("Invalid credentials"), http.StatusUnauthorized)
 		return
 	}
@@ -68,8 +68,8 @@ func (c Auth) Login(ctx *gin.Context) {
 		return
 	}
 
-	token, appErr := utils.GenerateToken(user.ID)
-	if appErr != nil {
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("error generating token"), http.StatusInternalServerError)
 		return
 	}
@@ -118,7 +118,13 @@ func (c Auth) Register(ctx *gin.Context) {
 		return
 	}
 
-	c.returnJSON(ctx, utils.NewHttpError("registered successfully"), http.StatusOK)
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		c.returnJSON(ctx, utils.NewHttpError("error generating token"), http.StatusInternalServerError)
+		return
+	}
+
+	c.returnJSON(ctx, token, http.StatusOK)
 }
 
 func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
