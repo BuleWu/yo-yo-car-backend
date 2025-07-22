@@ -64,7 +64,7 @@ func (c Auth) Login(ctx *gin.Context) {
 	}
 
 	if !utils.VerifyPassword(user.Password, credentials.Password) {
-		c.returnJSON(ctx, utils.NewHttpError("invalid credentials"), http.StatusUnauthorized)
+		c.returnJSON(ctx, utils.NewHttpError("Invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
@@ -138,7 +138,7 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 
 	data, err := getUserDataFromGoogle(code)
 	if err != nil {
-		ctx.Redirect(http.StatusTemporaryRedirect, "/welcome")
+		ctx.Redirect(http.StatusTemporaryRedirect, "")
 		return
 	}
 
@@ -186,7 +186,8 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 
 	token, err := utils.GenerateToken(user.ID)
 
-	c.returnJSON(ctx, token, http.StatusOK)
+	redirectURL := fmt.Sprintf("http://localhost:4200/auth/callback?token=%s", token)
+	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
 func generateStateOAuthCookie() (string, error) {

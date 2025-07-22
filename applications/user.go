@@ -2,6 +2,7 @@ package applications
 
 import (
 	"github.com/google/uuid"
+	"mime/multipart"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
@@ -71,4 +72,18 @@ func (a *User) DeleteUser(userId string) Exception {
 	}
 
 	return nil
+}¸
+
+func (u *User) UploadProfilePicture(userID string, file multipart.File, header *multipart.FileHeader) (string, *errors.ApplicationError) {
+	url, err := storage.UploadProfilePicture(file, header, userID)
+	if err != nil {
+		return "", errors.NewInternalServerError("failed to upload profile picture")
+	}
+
+	// Optional: Save URL to user record
+	if err := u.userRepository.UpdateProfilePicture(userID, url); err != nil {
+		return "", errors.NewInternalServerError("failed to update user with profile picture URL")
+	}
+
+	return url, nil
 }

@@ -61,3 +61,22 @@ func (c User) DeleteUser(ctx *gin.Context) {
 
 	c.returnJSON(ctx, "deleted", http.StatusOK)
 }
+
+func (c User) UploadProfilePicture(ctx *gin.Context) {
+	userID := ctx.Param("id")
+
+	file, header, err := ctx.Request.FormFile("file")
+	if err != nil {
+		c.returnJSON(ctx, utils.NewHttpError("invalid file upload"), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	url, appErr := c.userApplication.UploadProfilePicture(userID, file, header)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, url, http.StatusOK)
+}
