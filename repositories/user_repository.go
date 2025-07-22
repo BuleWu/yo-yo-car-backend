@@ -17,6 +17,7 @@ type UserRepository interface {
 	GetById(ID string) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	Delete(ID string) error
+	UpdateProfilePicture(ID string, url string) error
 }
 
 type User struct {
@@ -60,5 +61,17 @@ func (repo *User) Delete(ID string) error {
 	if err != nil {
 		return fmt.Errorf("user with id: %s couldn't be deleted", ID)
 	}
+	return nil
+}
+
+func (repo *User) UpdateProfilePicture(ID string, url string) error {
+	db := repo.conn.GetConnection()
+
+	if err := db.Model(&models.User{}).
+		Where("id = ?", ID).
+		Update("profile_picture", url).Error; err != nil {
+		return fmt.Errorf("failed to update profile picture for user %s: %w", ID, err)
+	}
+
 	return nil
 }

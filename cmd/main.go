@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -9,6 +10,7 @@ import (
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/controllers"
 	"zavrsni/yo-yo-car/database"
+	"zavrsni/yo-yo-car/firebase"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/runtimebag"
 	"zavrsni/yo-yo-car/shared/constants"
@@ -86,7 +88,17 @@ func main() {
 		apiRoutes.GET("/user/:id", userController.GetUser)
 		apiRoutes.POST("/user", userController.CreateUser)
 		apiRoutes.DELETE("/user/:id", userController.DeleteUser)
+		apiRoutes.POST("/user/:id/profile-picture", userController.UploadProfilePicture)
 	}
+
+	ctx := context.Background()
+
+	credentialsFile := runtimebag.GetEnvString("GOOGLE_APPLICATION_CREDENTIALS", "")
+	projectID := runtimebag.GetEnvString("FIREBASE_PROJECT_ID", "")
+	storageBucket := runtimebag.GetEnvString("FIREBASE_STORAGE_BUCKET", "")
+
+	firebase.InitFirebase(ctx, credentialsFile, projectID, storageBucket)
+	defer firebase.Client.Close()
 
 	if err := r.Run("localhost:8080"); err != nil {
 		log.Fatalf("error while trying to run server: %v\n", err)

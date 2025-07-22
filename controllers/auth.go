@@ -52,8 +52,8 @@ func (c Auth) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.userApplication.GetUserByEmail(credentials.Email)
-	if err != nil || user == nil {
+	user, appErr := c.userApplication.GetUserByEmail(credentials.Email)
+	if appErr != nil || user == nil {
 		c.returnJSON(ctx, utils.NewHttpError("Invalid credentials"), http.StatusUnauthorized)
 		return
 	}
@@ -64,12 +64,12 @@ func (c Auth) Login(ctx *gin.Context) {
 	}
 
 	if !utils.VerifyPassword(user.Password, credentials.Password) {
-		c.returnJSON(ctx, utils.NewHttpError("invalid credentials"), http.StatusUnauthorized)
+		c.returnJSON(ctx, utils.NewHttpError("Invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
-	token, appErr := utils.GenerateToken(user.ID)
-	if appErr != nil {
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("error generating token"), http.StatusInternalServerError)
 		return
 	}
@@ -118,7 +118,13 @@ func (c Auth) Register(ctx *gin.Context) {
 		return
 	}
 
-	c.returnJSON(ctx, utils.NewHttpError("registered successfully"), http.StatusOK)
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		c.returnJSON(ctx, utils.NewHttpError("error generating token"), http.StatusInternalServerError)
+		return
+	}
+
+	c.returnJSON(ctx, token, http.StatusOK)
 }
 
 func (c Auth) OauthGoogleLogin(ctx *gin.Context) {
@@ -138,7 +144,9 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 
 	data, err := getUserDataFromGoogle(code)
 	if err != nil {
-		ctx.Redirect(http.StatusTemporaryRedirect, "/welcome")
+		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+		redirectURL := fmt.Sprintf("%s/error?message=oauth_callback_failed", frontendUrl)
+		ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
 	}
 
@@ -186,7 +194,9 @@ func (c Auth) OauthGoogleCallback(ctx *gin.Context) {
 
 	token, err := utils.GenerateToken(user.ID)
 
-	c.returnJSON(ctx, token, http.StatusOK)
+	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+	redirectURL := fmt.Sprintf("%s/auth/callback?token=%s", frontendUrl, token)
+	ctx.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
 func generateStateOAuthCookie() (string, error) {
