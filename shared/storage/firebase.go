@@ -26,8 +26,21 @@ func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, use
 	wc := bucket.Object(objectPath).NewWriter(ctx)
 	defer wc.Close()
 
-	wc.ContentType = header.Header.Get("Content-Type")
+	// Define an allowlist of safe MIME types
+	allowedContentTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+	}
 
+	// Get the Content-Type from the header
+	contentType := header.Header.Get("Content-Type")
+
+	// Validate the Content-Type
+	if !allowedContentTypes[contentType] {
+		return "", fmt.Errorf("invalid content type: %s", contentType)
+	}
+
+	wc.ContentType = contentType
 	if _, err := io.Copy(wc, file); err != nil {
 		return "", err
 	}
