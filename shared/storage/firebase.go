@@ -6,9 +6,29 @@ import (
 	"io"
 	"mime/multipart"
 	"zavrsni/yo-yo-car/firebase"
+	"path/filepath"
+	"regexp"
 )
 
 func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, userID string) (string, error) {
+	// Validate file size
+	const maxFileSize = 5 * 1024 * 1024 // 5 MB
+	if header.Size > maxFileSize {
+		return "", fmt.Errorf("file size exceeds the maximum limit of 5 MB")
+	}
+
+	// Validate file type
+	allowedMimeTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+	}
+	contentType := header.Header.Get("Content-Type")
+	if !allowedMimeTypes[contentType] {
+		return "", fmt.Errorf("invalid file type: %s", contentType)
+	}
+
+	// Sanitize filename
+	safeFilename := sanitizeFilename(header.Filename)
 	ctx := context.Background()
 	app := firebase.App
 
