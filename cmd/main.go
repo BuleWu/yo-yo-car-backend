@@ -85,10 +85,19 @@ func main() {
 
 	apiRoutes := r.Group("/api")
 	{
+		/*user APIs*/
 		apiRoutes.GET("/user/:id", userController.GetUser)
 		apiRoutes.POST("/user", userController.CreateUser)
 		apiRoutes.DELETE("/user/:id", userController.DeleteUser)
 		apiRoutes.POST("/user/:id/profile-picture", userController.UploadProfilePicture)
+
+		/*ride APIs*/
+
+		/*rating APIs*/
+
+		/*conversation APIs*/
+
+		/*message APIs*/
 	}
 
 	ctx := context.Background()
