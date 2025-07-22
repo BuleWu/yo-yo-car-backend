@@ -45,7 +45,7 @@ func main() {
 	)
 
 	rideApplication := applications.NewRideApplication(
-		repositories.NewRideRepository
+		repositories.NewRideRepository,
 	)
 
 	userController = controllers.NewUserController(

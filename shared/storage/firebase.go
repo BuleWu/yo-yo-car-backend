@@ -6,8 +6,6 @@ import (
 	"io"
 	"mime/multipart"
 	"zavrsni/yo-yo-car/firebase"
-	"path/filepath"
-	"regexp"
 )
 
 func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, userID string) (string, error) {
@@ -42,7 +40,7 @@ func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, use
 		return "", err
 	}
 
-	objectPath := fmt.Sprintf("profile_pictures/%s-%s", userID, header.Filename)
+	objectPath := fmt.Sprintf("profile_pictures/%s-%s", userID, safeFilename)
 	wc := bucket.Object(objectPath).NewWriter(ctx)
 	defer wc.Close()
 
