@@ -19,6 +19,7 @@ import (
 var (
 	userController *controllers.User
 	authController *controllers.Auth
+	rideController *controllers.Ride
 	conn           *database.Connection
 )
 
@@ -43,12 +44,20 @@ func main() {
 		repositories.NewUserRepository(conn),
 	)
 
+	rideApplication := applications.NewRideApplication(
+		repositories.NewRideRepository
+	)
+
 	userController = controllers.NewUserController(
 		userApplication,
 	)
 
-	authController := controllers.NewAuthController(
+	authController = controllers.NewAuthController(
 		userApplication,
+	)
+
+	rideController = controllers.NewRideController(
+		rideApplication,
 	)
 
 	r := gin.Default()
@@ -83,7 +92,7 @@ func main() {
 		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
-	apiRoutes := r.Group("/api")
+	apiRoutes := r.Group("/api") /*TODO: add auth middleware*/
 	{
 		/*user APIs*/
 		apiRoutes.GET("/user/:id", userController.GetUser)
@@ -92,6 +101,7 @@ func main() {
 		apiRoutes.POST("/user/:id/profile-picture", userController.UploadProfilePicture)
 
 		/*ride APIs*/
+		apiRoutes.POST("/ride", rideController.CreateRide)
 
 		/*rating APIs*/
 
