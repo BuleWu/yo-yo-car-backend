@@ -107,6 +107,7 @@ func main() {
 		apiRoutes.POST("/ride", rideController.CreateRide)
 		apiRoutes.PUT("/ride/:id", rideController.UpdateRide)
 		apiRoutes.DELETE("/ride/:id", rideController.DeleteRide)
+
 		/*rating APIs*/
 
 		/*conversation APIs*/

@@ -1,7 +1,6 @@
 package applications
 
 import (
-	"github.com/google/uuid"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
@@ -51,14 +50,16 @@ type CreateRideRequest struct {
 }
 
 func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) {
-	ride := models.NewRide(uuid.NewString())
-	ride.StartingPoint = request.StartingPoint
-	ride.Destination = request.Destination
-	ride.DriverID = request.DriverID
-	ride.Passengers = []models.User{}
-	ride.Finished = false
-	ride.MaxPassengers = request.MaxPassengers
-	ride, err := a.rideRepository.Persist(ride)
+	var driver *models.User
+	var err error
+	if request.DriverID != "" {
+		driver, err = a.userRepository.GetById(request.DriverID)
+		if err != nil {
+			return nil, NewApplicationException(http.StatusNotFound, err)
+		}
+	}
+
+	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, request.DriverID, driver, false, nil, request.MaxPassengers))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
@@ -70,12 +71,12 @@ type UpdateRideRequest struct {
 	StartingPoint string `json:"starting_point"`
 	Destination   string `json:"destination"`
 	DriverID      string `json:"driver_id"`
+	Finished      bool   `json:"finished"`
 	MaxPassengers int    `json:"max_passengers"`
 }
 
 func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) {
 	ride, err := a.rideRepository.GetById(request.RideID)
-
 	if err != nil {
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
@@ -88,12 +89,15 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) 
 		ride.Destination = request.Destination
 	}
 
+	var newDriver *models.User
+
 	if request.DriverID != "" {
-		_, err = a.userRepository.GetById(request.DriverID)
+		newDriver, err = a.userRepository.GetById(request.DriverID)
 		if err != nil {
 			return nil, NewApplicationException(http.StatusBadRequest, err)
 		}
 		ride.DriverID = request.DriverID
+		ride.Driver = newDriver
 	}
 
 	if request.MaxPassengers > 0 {

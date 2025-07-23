@@ -38,7 +38,7 @@ func (repo *Ride) GetById(ID string) (*models.Ride, error) {
 	db := repo.conn.GetConnection()
 	var record models.Ride
 
-	if err := db.Preload("Driver").Where(&record, "id = ?", ID).Error; err != nil {
+	if err := db.Preload("Driver").First(&record, "id = ?", ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -58,18 +58,18 @@ func (repo *Ride) Persist(ride *models.Ride) (*models.Ride, error) {
 	return ride, nil
 }
 
-func (repo *Ride) Update(ride *models.Ride) (*models.Ride, error) {
+func (repo *Ride) Update(record *models.Ride) (*models.Ride, error) {
 	db := repo.conn.GetConnection()
 
-	if err := db.Save(ride).Error; err != nil {
+	if err := db.Save(record).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Preload("Driver").Find(ride, "id = ?", ride.ID).Error; err != nil {
+	if err := db.Preload("Driver").First(record, "id = ?", record.ID).Error; err != nil {
 		return nil, err
 	}
 
-	return ride, nil
+	return record, nil
 }
 
 func (repo *Ride) Delete(ride *models.Ride) error {

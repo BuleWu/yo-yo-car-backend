@@ -1,11 +1,15 @@
 package models
 
 // NewRide Ride constructor
-func NewRide(rideID string) *Ride {
+func NewRide(startingPoint string, destination string, driverId string, driver *User, finished bool, passengers *[]User, maxPassengers int) *Ride {
 	return &Ride{
-		Model: Model{
-			ID: rideID,
-		},
+		StartingPoint: startingPoint,
+		Destination:   destination,
+		DriverID:      driverId,
+		Driver:        driver,
+		Finished:      finished,
+		Passengers:    passengers,
+		MaxPassengers: maxPassengers,
 	}
 }
 
@@ -15,9 +19,9 @@ type Ride struct {
 	Destination   string `json:"destination"`
 
 	DriverID string `json:"driver_id" gorm:"not null"`
-	Driver   User   `json:"driver" gorm:"foreignKey:DriverID"`
+	Driver   *User  `json:"driver" gorm:"foreignKey:DriverID"`
 
-	Passengers []User `json:"passengers" gorm:"many2many:ride_passengers"`
+	Passengers *[]User `json:"passengers" gorm:"many2many:ride_passengers"`
 
 	Finished      bool `json:"finished"`
 	MaxPassengers int  `json:"max_passengers"`
