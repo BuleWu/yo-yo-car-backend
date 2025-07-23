@@ -19,6 +19,7 @@ import (
 var (
 	userController *controllers.User
 	authController *controllers.Auth
+	rideController *controllers.Ride
 	conn           *database.Connection
 )
 
@@ -43,12 +44,21 @@ func main() {
 		repositories.NewUserRepository(conn),
 	)
 
+	rideApplication := applications.NewRideApplication(
+		repositories.NewRideRepository(conn),
+		repositories.NewUserRepository(conn),
+	)
+
 	userController = controllers.NewUserController(
 		userApplication,
 	)
 
-	authController := controllers.NewAuthController(
+	authController = controllers.NewAuthController(
 		userApplication,
+	)
+
+	rideController = controllers.NewRideController(
+		rideApplication,
 	)
 
 	r := gin.Default()
@@ -83,12 +93,26 @@ func main() {
 		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
-	apiRoutes := r.Group("/api")
+	apiRoutes := r.Group("/api") /*TODO: add auth middleware*/
 	{
+		/*user APIs*/
 		apiRoutes.GET("/user/:id", userController.GetUser)
 		apiRoutes.POST("/user", userController.CreateUser)
 		apiRoutes.DELETE("/user/:id", userController.DeleteUser)
 		apiRoutes.POST("/user/:id/profile-picture", userController.UploadProfilePicture)
+
+		/*ride APIs*/
+		apiRoutes.GET("/ride", rideController.GetRides)
+		apiRoutes.GET("/ride/:id", rideController.GetRideById)
+		apiRoutes.POST("/ride", rideController.CreateRide)
+		apiRoutes.PUT("/ride/:id", rideController.UpdateRide)
+		apiRoutes.DELETE("/ride/:id", rideController.DeleteRide)
+
+		/*rating APIs*/
+
+		/*conversation APIs*/
+
+		/*message APIs*/
 	}
 
 	ctx := context.Background()

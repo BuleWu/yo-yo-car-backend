@@ -19,6 +19,7 @@ func NewConnection(host, port, user, password, database string) (*Connection, er
 	}
 
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Ride{})
 
 	fmt.Println("Successfully connected!")
 

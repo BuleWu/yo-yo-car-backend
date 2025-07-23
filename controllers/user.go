@@ -47,7 +47,6 @@ func (c User) CreateUser(ctx *gin.Context) {
 		return
 	}
 	c.returnJSON(ctx, data, http.StatusCreated)
-	return
 }
 
 func (c User) DeleteUser(ctx *gin.Context) {
