@@ -16,7 +16,7 @@ func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, use
 	}
 
 	// Sanitize filename
-	safeFilename := sanitizeFilename(header.Filename)
+	safeFilename := SanitizeFilename(header.Filename)
 	ctx := context.Background()
 	app := firebase.App
 

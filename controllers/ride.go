@@ -71,6 +71,7 @@ func (c Ride) UpdateRide(ctx *gin.Context) {
 	ride, appErr := c.rideApplication.UpdateRide(&request)
 	if appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
 	}
 
 	c.returnJSON(ctx, ride, http.StatusOK)
@@ -79,6 +80,7 @@ func (c Ride) UpdateRide(ctx *gin.Context) {
 func (c Ride) DeleteRide(ctx *gin.Context) {
 	if appErr := c.rideApplication.DeleteRide(ctx.Param("id")); appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
 	}
 
 	c.returnJSON(ctx, "ok", http.StatusOK)

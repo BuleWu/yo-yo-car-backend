@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func sanitizeFilename(filename string) string {
+func SanitizeFilename(filename string) string {
 	// Remove any path components (just keep the base filename)
 	parts := strings.Split(filename, "/")
 	filename = parts[len(parts)-1]
