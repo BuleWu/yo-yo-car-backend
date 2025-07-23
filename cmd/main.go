@@ -45,7 +45,8 @@ func main() {
 	)
 
 	rideApplication := applications.NewRideApplication(
-		repositories.NewRideRepository,
+		repositories.NewRideRepository(conn),
+		repositories.NewUserRepository(conn),
 	)
 
 	userController = controllers.NewUserController(
@@ -101,8 +102,11 @@ func main() {
 		apiRoutes.POST("/user/:id/profile-picture", userController.UploadProfilePicture)
 
 		/*ride APIs*/
+		apiRoutes.GET("/ride", rideController.GetRides)
+		apiRoutes.GET("/ride/:id", rideController.GetRideById)
 		apiRoutes.POST("/ride", rideController.CreateRide)
-
+		apiRoutes.PUT("/ride/:id", rideController.UpdateRide)
+		apiRoutes.DELETE("/ride/:id", rideController.DeleteRide)
 		/*rating APIs*/
 
 		/*conversation APIs*/

@@ -12,17 +12,70 @@ func NewRideRepository(db *database.Connection) RideRepository {
 }
 
 type RideRepository interface {
+	Get() (*[]models.Ride, error)
+	GetById(ID string) (*models.Ride, error)
 	Persist(ride *models.Ride) (*models.Ride, error)
+	Update(ride *models.Ride) (*models.Ride, error)
+	Delete(ride *models.Ride) error
 }
 
 type Ride struct {
 	conn *database.Connection
 }
 
-func (repo *Ride) Persist(record *models.Ride) (*models.Ride, error) {
+func (repo *Ride) Get() (*[]models.Ride, error) {
 	db := repo.conn.GetConnection()
-	if err := db.Create(record).Error; err != nil {
+	var record []models.Ride
+
+	if err := db.Preload("Driver").Find(&record).Error; err != nil {
 		return nil, err
 	}
-	return record, nil
+
+	return &record, nil
+}
+
+func (repo *Ride) GetById(ID string) (*models.Ride, error) {
+	db := repo.conn.GetConnection()
+	var record models.Ride
+
+	if err := db.Preload("Driver").Where(&record, "id = ?", ID).Error; err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
+func (repo *Ride) Persist(ride *models.Ride) (*models.Ride, error) {
+	db := repo.conn.GetConnection()
+	if err := db.Create(ride).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Preload("Driver").First(ride, "id = ?", ride.ID).Error; err != nil {
+		return nil, err
+	}
+
+	return ride, nil
+}
+
+func (repo *Ride) Update(ride *models.Ride) (*models.Ride, error) {
+	db := repo.conn.GetConnection()
+
+	if err := db.Save(ride).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.Preload("Driver").Find(ride, "id = ?", ride.ID).Error; err != nil {
+		return nil, err
+	}
+
+	return ride, nil
+}
+
+func (repo *Ride) Delete(ride *models.Ride) error {
+	db := repo.conn.GetConnection()
+	if err := db.Delete(ride).Error; err != nil {
+		return err
+	}
+	return nil
 }

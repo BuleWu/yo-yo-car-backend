@@ -15,16 +15,6 @@ func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, use
 		return "", fmt.Errorf("file size exceeds the maximum limit of 5 MB")
 	}
 
-	// Validate file type
-	allowedMimeTypes := map[string]bool{
-		"image/jpeg": true,
-		"image/png":  true,
-	}
-	contentType := header.Header.Get("Content-Type")
-	if !allowedMimeTypes[contentType] {
-		return "", fmt.Errorf("invalid file type: %s", contentType)
-	}
-
 	// Sanitize filename
 	safeFilename := sanitizeFilename(header.Filename)
 	ctx := context.Background()
