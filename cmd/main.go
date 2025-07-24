@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	userController *controllers.User
-	authController *controllers.Auth
-	rideController *controllers.Ride
-	conn           *database.Connection
+	userController   *controllers.User
+	authController   *controllers.Auth
+	rideController   *controllers.Ride
+	ratingController *controllers.Rating
+	conn             *database.Connection
 )
 
 func main() {
@@ -49,6 +50,12 @@ func main() {
 		repositories.NewUserRepository(conn),
 	)
 
+	ratingApplication := applications.NewRatingApplication(
+		repositories.NewRatingRepository(),
+		repositories.NewRideRepository(),
+		repositories.NewUserRepository(),
+	)
+
 	userController = controllers.NewUserController(
 		userApplication,
 	)
@@ -59,6 +66,10 @@ func main() {
 
 	rideController = controllers.NewRideController(
 		rideApplication,
+	)
+
+	ratingController = controllers.NewRatingController(
+		ratingApplication,
 	)
 
 	r := gin.Default()
@@ -109,6 +120,7 @@ func main() {
 		apiRoutes.DELETE("/ride/:id", rideController.DeleteRide)
 
 		/*rating APIs*/
+		apiRoutes.POST("/rating", ratingController.CreateRating)
 
 		/*conversation APIs*/
 
