@@ -106,8 +106,8 @@ func main() {
 		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
-	r.Use(middleware.AuthenticationMiddleware())
-	apiRoutes := r.Group("/api") /*TODO: add auth middleware*/
+	apiRoutes := r.Group("/api")
+	apiRoutes.Use(middleware.AuthenticationMiddleware())
 	{
 		/*user APIs*/
 		apiRoutes.GET("/users/:id", userController.GetUser)
