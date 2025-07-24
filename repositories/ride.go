@@ -97,8 +97,11 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 	}
 
 	for _, q := range query {
-		if !allowedColumns[q.Column] || !allowedOperators[q.Operator] {
-			return nil, errors.New("invalid search parameter")
+		if !allowedColumns[q.Column] {
+			return nil, errors.New("invalid search column: " + q.Column)
+		}
+		if !allowedOperators[q.Operator] {
+			return nil, errors.New("invalid search operator: " + q.Operator)
 		}
 		db = db.Where("? "+q.Operator+" ?", db.NamingStrategy.ColumnName("", q.Column), q.Value)
 	}
