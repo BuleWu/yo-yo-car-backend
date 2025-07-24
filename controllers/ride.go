@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/core/utils"
+	"zavrsni/yo-yo-car/repositories"
 )
 
 func NewRideController(
@@ -20,7 +21,7 @@ type Ride struct {
 	rideApplication *applications.Ride
 }
 
-func (c Ride) GetRides(ctx *gin.Context) {
+func (c *Ride) GetRides(ctx *gin.Context) {
 	data, appErr := c.rideApplication.GetRides()
 
 	if appErr != nil {
@@ -31,7 +32,7 @@ func (c Ride) GetRides(ctx *gin.Context) {
 	c.returnJSON(ctx, data, http.StatusOK)
 }
 
-func (c Ride) GetRideById(ctx *gin.Context) {
+func (c *Ride) GetRideById(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	ride, appErr := c.rideApplication.GetRideById(id)
@@ -44,7 +45,7 @@ func (c Ride) GetRideById(ctx *gin.Context) {
 	c.returnJSON(ctx, ride, http.StatusOK)
 }
 
-func (c Ride) CreateRide(ctx *gin.Context) {
+func (c *Ride) CreateRide(ctx *gin.Context) {
 	var request applications.CreateRideRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
@@ -59,7 +60,7 @@ func (c Ride) CreateRide(ctx *gin.Context) {
 	c.returnJSON(ctx, ride, http.StatusCreated)
 }
 
-func (c Ride) UpdateRide(ctx *gin.Context) {
+func (c *Ride) UpdateRide(ctx *gin.Context) {
 	var request applications.UpdateRideRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
@@ -77,11 +78,41 @@ func (c Ride) UpdateRide(ctx *gin.Context) {
 	c.returnJSON(ctx, ride, http.StatusOK)
 }
 
-func (c Ride) DeleteRide(ctx *gin.Context) {
+func (c *Ride) DeleteRide(ctx *gin.Context) {
 	if appErr := c.rideApplication.DeleteRide(ctx.Param("id")); appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}
 
 	c.returnJSON(ctx, nil, http.StatusNoContent)
+}
+
+func (c *Ride) SearchRides(ctx *gin.Context) {
+	start := ctx.Query("starting_point")
+	dest := ctx.Query("destination")
+
+	var queries []repositories.SearchQuery
+
+	if start != "" {
+		queries = append(queries, repositories.SearchQuery{
+			Column:   "starting_point",
+			Operator: "=",
+			Value:    start,
+		})
+	}
+	if dest != "" {
+		queries = append(queries, repositories.SearchQuery{
+			Column:   "destination",
+			Operator: "=",
+			Value:    dest,
+		})
+	}
+
+	rides, err := c.rideApplication.SearchRides(queries)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, rides)
 }
