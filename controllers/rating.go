@@ -3,7 +3,7 @@ package controllers
 import "zavrsni/yo-yo-car/applications"
 
 func NewRatingController(
-	ratingApplication *applications.Rating
+	ratingApplication *applications.Rating,
 ) *Rating {
 	return &Rating{
 		ratingApplication: ratingApplication,
@@ -12,5 +12,5 @@ func NewRatingController(
 
 type Rating struct {
 	Controller
-	applications.Rating
+	ratingApplication *applications.Rating
 }
