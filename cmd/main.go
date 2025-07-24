@@ -11,6 +11,7 @@ import (
 	"zavrsni/yo-yo-car/controllers"
 	"zavrsni/yo-yo-car/database"
 	"zavrsni/yo-yo-car/firebase"
+	"zavrsni/yo-yo-car/middleware"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/runtimebag"
 	"zavrsni/yo-yo-car/shared/constants"
@@ -96,6 +97,7 @@ func main() {
 	{
 		// Protected routes here
 	}*/
+
 	authRoutes := r.Group("/auth")
 	{
 		authRoutes.POST("/login", authController.Login)
@@ -104,6 +106,7 @@ func main() {
 		authRoutes.GET("/google/callback", authController.OauthGoogleCallback)
 	}
 
+	r.Use(middleware.AuthenticationMiddleware())
 	apiRoutes := r.Group("/api") /*TODO: add auth middleware*/
 	{
 		/*user APIs*/
