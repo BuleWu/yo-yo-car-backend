@@ -51,9 +51,9 @@ func main() {
 	)
 
 	ratingApplication := applications.NewRatingApplication(
-		repositories.NewRatingRepository(),
-		repositories.NewRideRepository(),
-		repositories.NewUserRepository(),
+		repositories.NewRatingRepository(conn),
+		repositories.NewRideRepository(conn),
+		repositories.NewUserRepository(conn),
 	)
 
 	userController = controllers.NewUserController(
@@ -122,9 +122,9 @@ func main() {
 		/*rating APIs*/
 		apiRoutes.GET("/rating", ratingController.GetRatings)
 		apiRoutes.GET("/rating/:id", ratingController.GetRatingById)
-		apiRoutes.GET("/rating/:userId", ratingController.GetRatingsByUserId)
+		apiRoutes.GET("/rating/user/:userId", ratingController.GetRatingsByUserId)
 		apiRoutes.POST("/rating", ratingController.CreateRating)
-		apiRoutes.POST("/rating/:id", ratingController.UpdateRating)
+		apiRoutes.PUT("/rating/:id", ratingController.UpdateRating)
 		apiRoutes.DELETE("/rating/:id", ratingController.DeleteRating)
 
 		/*conversation APIs*/

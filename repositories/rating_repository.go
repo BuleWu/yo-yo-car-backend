@@ -28,7 +28,7 @@ func (repo *Rating) Get() (*[]models.Rating, error) {
 	db := repo.conn.GetConnection()
 	var ratings []models.Rating
 
-	if err := db.Find(&ratings).Error; err != nil {
+	if err := db.Preload("RatedUser").Preload("Rater").Preload("Ride").Find(&ratings).Error; err != nil {
 		return nil, err
 	}
 
