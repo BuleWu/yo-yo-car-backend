@@ -83,5 +83,5 @@ func (c Ride) DeleteRide(ctx *gin.Context) {
 		return
 	}
 
-	c.returnJSON(ctx, "ok", http.StatusOK)
+	c.returnJSON(ctx, nil, http.StatusNoContent)
 }
