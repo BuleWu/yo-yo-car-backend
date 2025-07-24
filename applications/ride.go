@@ -3,6 +3,7 @@ package applications
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 )
@@ -152,7 +153,7 @@ func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *
 				missingPassengers = append(missingPassengers, passengerID)
 			}
 		}
-		return nil, NewApplicationException(http.StatusUnprocessableEntity, fmt.Errorf("could not find passengers with IDs: %s", missingPassengers))
+		return nil, NewApplicationException(http.StatusUnprocessableEntity, fmt.Errorf("could not find passengers with IDs: %s", strings.Join(missingPassengers, ",")))
 	}
 	return passengers, nil
 }
