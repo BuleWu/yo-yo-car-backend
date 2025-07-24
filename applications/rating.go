@@ -1,10 +1,15 @@
 package applications
 
 import (
-	"errors"
 	"net/http"
+	"strings"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
+)
+
+var (
+	MinRatingValue = 1
+	MaxRatingValue = 5
 )
 
 func NewRatingApplication(
@@ -59,16 +64,6 @@ type CreateRatingRequest struct {
 }
 
 func (a *Rating) CreateRating(request *CreateRatingRequest) (*models.Rating, Exception) {
-	if _, err := a.userRepository.GetById(request.RaterID); err != nil {
-		return nil, NewApplicationException(http.StatusBadRequest, errors.New("invalid rater"))
-	}
-	if _, err := a.userRepository.GetById(request.RatedUserID); err != nil {
-		return nil, NewApplicationException(http.StatusBadRequest, errors.New("invalid rated user"))
-	}
-	if _, err := a.rideRepository.GetById(request.RideID); err != nil {
-		return nil, NewApplicationException(http.StatusBadRequest, errors.New("invalid ride"))
-	}
-
 	rating, err := a.ratingRepository.Persist(models.NewRating(request.Value, request.RaterID, request.RatedUserID, request.RideID, request.Comment))
 
 	if err != nil {
@@ -90,11 +85,11 @@ func (a *Rating) UpdateRating(request *UpdateRatingRequest) (*models.Rating, Exc
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
 
-	if request.Value > 0 && request.Value < 6 {
+	if request.Value >= MinRatingValue && request.Value <= MaxRatingValue {
 		rating.Value = request.Value
 	}
 
-	if request.Comment != "" {
+	if strings.TrimSpace(request.Comment) != "" {
 		rating.Comment = request.Comment
 	}
 
