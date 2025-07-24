@@ -100,7 +100,7 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 		if !allowedColumns[q.Column] || !allowedOperators[q.Operator] {
 			return nil, errors.New("invalid search parameter")
 		}
-		db = db.Where(q.Column+" "+q.Operator+" ?", q.Value)
+		db = db.Where("? "+q.Operator+" ?", db.NamingStrategy.ColumnName("", q.Column), q.Value)
 	}
 
 	if err := db.Find(&rides).Error; err != nil {
