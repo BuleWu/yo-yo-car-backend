@@ -143,14 +143,12 @@ func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *
 	}
 	if len(passengers) < len(PassengerIDs) {
 		var missingPassengers []string
+		passengerMap := make(map[string]bool)
+		for _, passenger := range passengers {
+			passengerMap[fmt.Sprint(passenger.ID)] = true
+		}
 		for _, passengerID := range PassengerIDs {
-			var found bool
-			for _, passenger := range passengers {
-				if fmt.Sprint(passenger.ID) == passengerID {
-					found = true
-				}
-			}
-			if found == false {
+			if !passengerMap[passengerID] {
 				missingPassengers = append(missingPassengers, passengerID)
 			}
 		}
