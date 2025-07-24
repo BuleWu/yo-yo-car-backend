@@ -13,6 +13,7 @@ func NewUserRepository(db *database.Connection) UserRepository {
 }
 
 type UserRepository interface {
+	GetMany(IDs []string) ([]*models.User, error)
 	Persist(user *models.User) (*models.User, error)
 	GetById(ID string) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
@@ -22,6 +23,18 @@ type UserRepository interface {
 
 type User struct {
 	conn *database.Connection
+}
+
+func (repo *User) GetMany(IDs []string) ([]*models.User, error) {
+	users := make([]*models.User, len(IDs))
+	if len(IDs) == 0 {
+		return users, nil
+	}
+	db := repo.conn.GetConnection()
+	if err := db.Find(&users, IDs).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 // GetById Get user by id

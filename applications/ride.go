@@ -1,7 +1,9 @@
 package applications
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 )
@@ -67,12 +69,13 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) 
 }
 
 type UpdateRideRequest struct {
-	RideID        string `json:"-"`
-	StartingPoint string `json:"starting_point"`
-	Destination   string `json:"destination"`
-	DriverID      string `json:"driver_id"`
-	Finished      bool   `json:"finished"`
-	MaxPassengers int    `json:"max_passengers"`
+	RideID        string   `json:"-"`
+	StartingPoint string   `json:"starting_point"`
+	Destination   string   `json:"destination"`
+	DriverID      string   `json:"driver_id"`
+	Finished      bool     `json:"finished"`
+	PassengerIDs  []string `json:"passenger_ids"`
+	MaxPassengers int      `json:"max_passengers"`
 }
 
 func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) {
@@ -100,6 +103,14 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) 
 		ride.Driver = newDriver
 	}
 
+	if len(request.PassengerIDs) > 0 {
+		passengers, appErr := a.checkPassengerExistence(request.PassengerIDs)
+		if appErr != nil {
+			return nil, appErr
+		}
+		ride.Passengers = passengers
+	}
+
 	if request.MaxPassengers > 0 {
 		ride.MaxPassengers = request.MaxPassengers
 	}
@@ -124,4 +135,25 @@ func (a *Ride) DeleteRide(rideID string) Exception {
 	}
 
 	return nil
+}
+
+func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *ApplicationException) {
+	passengers, err := a.userRepository.GetMany(PassengerIDs)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+	if len(passengers) < len(PassengerIDs) {
+		var missingPassengers []string
+		passengerMap := make(map[string]bool)
+		for _, passenger := range passengers {
+			passengerMap[fmt.Sprint(passenger.ID)] = true
+		}
+		for _, passengerID := range PassengerIDs {
+			if !passengerMap[passengerID] {
+				missingPassengers = append(missingPassengers, passengerID)
+			}
+		}
+		return nil, NewApplicationException(http.StatusUnprocessableEntity, fmt.Errorf("could not find passengers with IDs: %s", strings.Join(missingPassengers, ",")))
+	}
+	return passengers, nil
 }
