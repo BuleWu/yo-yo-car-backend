@@ -14,6 +14,7 @@ func NewRatingRepository(db *database.Connection) RatingRepository {
 type RatingRepository interface {
 	Get() (*[]models.Rating, error)
 	GetById(Id string) (*models.Rating, error)
+	GetByUserId(userId string) (*[]models.Rating, error)
 	Persist(rating *models.Rating) (*models.Rating, error)
 	Update(rating *models.Rating) (*models.Rating, error)
 	Delete(rating *models.Rating) error
@@ -45,6 +46,21 @@ func (repo *Rating) GetById(id string) (*models.Rating, error) {
 	return &record, nil
 }
 
+func (repo *Rating) GetByUserId(userId string) (*[]models.Rating, error) {
+	db := repo.conn.GetConnection()
+	var ratings []models.Rating
+
+	if err := db.Where("rated_user_id = ?", userId).
+		Preload("RatedUser").
+		Preload("Rater").
+		Preload("Ride").
+		Find(&ratings).Error; err != nil {
+		return nil, err
+	}
+
+	return &ratings, nil
+}
+
 func (repo *Rating) Persist(rating *models.Rating) (*models.Rating, error) {
 	db := repo.conn.GetConnection()
 
@@ -59,24 +75,24 @@ func (repo *Rating) Persist(rating *models.Rating) (*models.Rating, error) {
 	return rating, nil
 }
 
-func (repo *Rating) Update(record *models.Rating) (*models.Rating, error) {
+func (repo *Rating) Update(rating *models.Rating) (*models.Rating, error) {
 	db := repo.conn.GetConnection()
 
-	if err := db.Save(record).Error; err != nil {
+	if err := db.Save(rating).Error; err != nil {
 		return nil, err
 	}
 
-	if err := db.Preload("RatedUser").Preload("Rater").Preload("Ride").First(record, "id = ?", record.ID).Error; err != nil {
+	if err := db.Preload("RatedUser").Preload("Rater").Preload("Ride").First(rating, "id = ?", rating.ID).Error; err != nil {
 		return nil, err
 	}
 
-	return record, nil
+	return rating, nil
 }
 
-func (repo *Rating) Delete(record *models.Rating) error {
+func (repo *Rating) Delete(rating *models.Rating) error {
 	db := repo.conn.GetConnection()
 
-	if err := db.Delete(record, "id = ?", record.ID).Error; err != nil {
+	if err := db.Delete(rating, "id = ?", rating.ID).Error; err != nil {
 		return err
 	}
 
