@@ -110,9 +110,9 @@ func (c *Ride) SearchRides(ctx *gin.Context) {
 
 	rides, err := c.rideApplication.SearchRides(queries)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, rides)
+	c.returnJSON(ctx, rides, http.StatusOK)
 }
