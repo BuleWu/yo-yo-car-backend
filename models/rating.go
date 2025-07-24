@@ -1,8 +1,14 @@
 package models
 
 // NewRating constructor for new rating
-func NewRating() *Rating {
-	return &Rating{}
+func NewRating(value int, raterId string, ratedUserId string, rideId string, comment string) *Rating {
+	return &Rating{
+		Value:       value,
+		RaterID:     raterId,
+		RatedUserID: ratedUserId,
+		RideID:      rideId,
+		Comment:     comment,
+	}
 }
 
 type Rating struct {
