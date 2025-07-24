@@ -107,25 +107,26 @@ func main() {
 	apiRoutes := r.Group("/api") /*TODO: add auth middleware*/
 	{
 		/*user APIs*/
-		apiRoutes.GET("/user/:id", userController.GetUser)
-		apiRoutes.POST("/user", userController.CreateUser)
-		apiRoutes.DELETE("/user/:id", userController.DeleteUser)
-		apiRoutes.POST("/user/:id/profile-picture", userController.UploadProfilePicture)
+		apiRoutes.GET("/users/:id", userController.GetUser)
+		apiRoutes.POST("/users", userController.CreateUser)
+		apiRoutes.DELETE("/users/:id", userController.DeleteUser)
+		apiRoutes.POST("/users/:id/profile-picture", userController.UploadProfilePicture)
 
 		/*ride APIs*/
-		apiRoutes.GET("/ride", rideController.GetRides)
-		apiRoutes.GET("/ride/:id", rideController.GetRideById)
-		apiRoutes.POST("/ride", rideController.CreateRide)
-		apiRoutes.PUT("/ride/:id", rideController.UpdateRide)
-		apiRoutes.DELETE("/ride/:id", rideController.DeleteRide)
+		apiRoutes.GET("/rides", rideController.GetRides)
+		apiRoutes.GET("/rides/:id", rideController.GetRideById)
+		apiRoutes.POST("/rides", rideController.CreateRide)
+		apiRoutes.PUT("/rides/:id", rideController.UpdateRide)
+		apiRoutes.DELETE("/rides/:id", rideController.DeleteRide)
+		apiRoutes.GET("/rides/search", rideController.SearchRides)
 
 		/*rating APIs*/
-		apiRoutes.GET("/rating", ratingController.GetRatings)
-		apiRoutes.GET("/rating/:id", ratingController.GetRatingById)
-		apiRoutes.GET("/rating/user/:userId", ratingController.GetRatingsByUserId)
-		apiRoutes.POST("/rating", ratingController.CreateRating)
-		apiRoutes.PUT("/rating/:id", ratingController.UpdateRating)
-		apiRoutes.DELETE("/rating/:id", ratingController.DeleteRating)
+		apiRoutes.GET("/ratings", ratingController.GetRatings)
+		apiRoutes.GET("/ratings/:id", ratingController.GetRatingById)
+		apiRoutes.GET("/ratings/users/:userId", ratingController.GetRatingsByUserId)
+		apiRoutes.POST("/ratings", ratingController.CreateRating)
+		apiRoutes.PUT("/ratings/:id", ratingController.UpdateRating)
+		apiRoutes.DELETE("/ratings/:id", ratingController.DeleteRating)
 
 		/*conversation APIs*/
 

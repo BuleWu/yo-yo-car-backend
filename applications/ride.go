@@ -157,3 +157,7 @@ func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *
 	}
 	return passengers, nil
 }
+
+func (a *Ride) SearchRides(queries []repositories.SearchQuery) ([]*models.Ride, error) {
+	return a.rideRepository.Search(queries)
+}

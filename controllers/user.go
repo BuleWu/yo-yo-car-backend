@@ -22,7 +22,7 @@ type User struct {
 }
 
 /*GetUser is the UserController method that handles the GET request */
-func (c User) GetUser(ctx *gin.Context) {
+func (c *User) GetUser(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	user, err := c.userApplication.GetUserById(userId)
 
@@ -34,7 +34,7 @@ func (c User) GetUser(ctx *gin.Context) {
 	c.returnJSON(ctx, user, http.StatusOK)
 }
 
-func (c User) CreateUser(ctx *gin.Context) {
+func (c *User) CreateUser(ctx *gin.Context) {
 	var request applications.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
@@ -49,7 +49,7 @@ func (c User) CreateUser(ctx *gin.Context) {
 	c.returnJSON(ctx, data, http.StatusCreated)
 }
 
-func (c User) DeleteUser(ctx *gin.Context) {
+func (c *User) DeleteUser(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	appErr := c.userApplication.DeleteUser(userId)
 
@@ -61,7 +61,7 @@ func (c User) DeleteUser(ctx *gin.Context) {
 	c.returnJSON(ctx, "deleted", http.StatusOK)
 }
 
-func (c User) UploadProfilePicture(ctx *gin.Context) {
+func (c *User) UploadProfilePicture(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
 	file, header, err := ctx.Request.FormFile("file")

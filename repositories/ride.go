@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"zavrsni/yo-yo-car/database"
 	"zavrsni/yo-yo-car/models"
 )
@@ -17,6 +18,7 @@ type RideRepository interface {
 	Persist(ride *models.Ride) (*models.Ride, error)
 	Update(ride *models.Ride) (*models.Ride, error)
 	Delete(ride *models.Ride) error
+	Search(query []SearchQuery) ([]*models.Ride, error)
 }
 
 type Ride struct {
@@ -78,4 +80,34 @@ func (repo *Ride) Delete(ride *models.Ride) error {
 		return err
 	}
 	return nil
+}
+
+func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
+	db := repo.conn.GetConnection()
+	var rides []*models.Ride
+
+	allowedColumns := map[string]bool{
+		"starting_point": true,
+		"destination":    true,
+	}
+
+	allowedOperators := map[string]bool{
+		"=":    true,
+		"LIKE": true,
+	}
+
+	for _, q := range query {
+		if !allowedColumns[q.Column] {
+			return nil, errors.New("invalid search column: " + q.Column)
+		}
+		if !allowedOperators[q.Operator] {
+			return nil, errors.New("invalid search operator: " + q.Operator)
+		}
+		db = db.Where("? "+q.Operator+" ?", db.NamingStrategy.ColumnName("", q.Column), q.Value)
+	}
+
+	if err := db.Find(&rides).Error; err != nil {
+		return nil, err
+	}
+	return rides, nil
 }
