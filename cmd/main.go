@@ -120,7 +120,12 @@ func main() {
 		apiRoutes.DELETE("/ride/:id", rideController.DeleteRide)
 
 		/*rating APIs*/
+		apiRoutes.GET("/rating", ratingController.GetRatings)
+		apiRoutes.GET("/rating/:id", ratingController.GetRatingById)
+		apiRoutes.GET("/rating/:userId", ratingController.GetRatingsByUserId)
 		apiRoutes.POST("/rating", ratingController.CreateRating)
+		apiRoutes.POST("/rating/:id", ratingController.UpdateRating)
+		apiRoutes.DELETE("/rating/:id", ratingController.DeleteRating)
 
 		/*conversation APIs*/
 
