@@ -14,7 +14,7 @@ func NewRideRepository(db *database.Connection) RideRepository {
 }
 
 type RideRepository interface {
-	Get() (*[]models.Ride, error)
+	Get() ([]*models.Ride, error)
 	GetById(ID string) (*models.Ride, error)
 	Persist(ride *models.Ride) (*models.Ride, error)
 	Update(ride *models.Ride) (*models.Ride, error)
@@ -26,15 +26,15 @@ type Ride struct {
 	conn *database.Connection
 }
 
-func (repo *Ride) Get() (*[]models.Ride, error) {
+func (repo *Ride) Get() ([]*models.Ride, error) {
 	db := repo.conn.GetConnection()
-	var record []models.Ride
+	var record []*models.Ride
 
 	if err := db.Preload("Driver").Find(&record).Error; err != nil {
 		return nil, err
 	}
 
-	return &record, nil
+	return record, nil
 }
 
 func (repo *Ride) GetById(ID string) (*models.Ride, error) {

@@ -10,6 +10,19 @@ import (
 	"zavrsni/yo-yo-car/repositories"
 )
 
+type RideDTO struct {
+	ID            string         `json:"id"`
+	StartingPoint string         `json:"starting_point"`
+	Destination   string         `json:"destination"`
+	Price         float64        `json:"price"`
+	Date          time.Time      `json:"date"`
+	DriverID      string         `json:"driver_id"`
+	Driver        *models.User   `json:"driver"`
+	Passengers    []*models.User `json:"passengers"`
+	MaxPassengers int            `json:"max_passengers"`
+	Finished      bool           `json:"finished"`
+}
+
 func NewRideApplication(
 	rideRepository repositories.RideRepository,
 	userRepository repositories.UserRepository,
@@ -26,24 +39,32 @@ type Ride struct {
 	userRepository repositories.UserRepository
 }
 
-func (a *Ride) GetRides() (*[]models.Ride, Exception) {
+func (a *Ride) GetRides() ([]*RideDTO, Exception) {
 	rides, err := a.rideRepository.Get()
 
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
-	return rides, nil
+	var rideDtos []*RideDTO
+
+	for _, ride := range rides {
+		rideDtos = append(rideDtos, ToRideDTO(ride))
+	}
+
+	return rideDtos, nil
 }
 
-func (a *Ride) GetRideById(ID string) (*models.Ride, Exception) {
+func (a *Ride) GetRideById(ID string) (*RideDTO, Exception) {
 	ride, err := a.rideRepository.GetById(ID)
 
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
-	return ride, nil
+	rideDto := ToRideDTO(ride)
+
+	return rideDto, nil
 }
 
 type CreateRideRequest struct {
@@ -55,7 +76,7 @@ type CreateRideRequest struct {
 	Date          time.Time `json:"date"`
 }
 
-func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) {
+func (a *Ride) CreateRide(request *CreateRideRequest) (*RideDTO, Exception) {
 	var driver *models.User
 	var err error
 	if request.DriverID != "" {
@@ -71,7 +92,10 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) 
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
-	return ride, nil
+
+	rideDto := ToRideDTO(ride)
+
+	return rideDto, nil
 }
 
 type UpdateRideRequest struct {
@@ -86,7 +110,7 @@ type UpdateRideRequest struct {
 	Date          time.Time `json:"date"`
 }
 
-func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) {
+func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 	ride, err := a.rideRepository.GetById(request.RideID)
 	if err != nil {
 		return nil, NewApplicationException(http.StatusNotFound, err)
@@ -137,7 +161,9 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) 
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
-	return ride, nil
+	rideDto := ToRideDTO(ride)
+
+	return rideDto, nil
 }
 
 func (a *Ride) DeleteRide(rideID string) Exception {
@@ -151,6 +177,21 @@ func (a *Ride) DeleteRide(rideID string) Exception {
 	}
 
 	return nil
+}
+
+func (a *Ride) SearchRides(queries []repositories.SearchQuery) ([]*RideDTO, Exception) {
+	rides, err := a.rideRepository.Search(queries)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	var rideDtos []*RideDTO
+
+	for _, ride := range rides {
+		rideDtos = append(rideDtos, ToRideDTO(ride))
+	}
+
+	return rideDtos, nil
 }
 
 func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *ApplicationException) {
@@ -174,6 +215,17 @@ func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *
 	return passengers, nil
 }
 
-func (a *Ride) SearchRides(queries []repositories.SearchQuery) ([]*models.Ride, error) {
-	return a.rideRepository.Search(queries)
+func ToRideDTO(ride *models.Ride) *RideDTO {
+	return &RideDTO{
+		ID:            ride.ID,
+		StartingPoint: ride.StartingPoint,
+		Destination:   ride.Destination,
+		Price:         ride.Price.Float64(),
+		DriverID:      ride.DriverID,
+		Driver:        ride.Driver,
+		Passengers:    ride.Passengers,
+		MaxPassengers: ride.MaxPassengers,
+		Finished:      ride.Finished,
+		Date:          ride.Date,
+	}
 }
