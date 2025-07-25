@@ -1,11 +1,14 @@
 package models
 
 // NewUser user constructor
-func NewUser(userId string) *User {
+func NewUser(firstName string, lastName string, email string, password string, provider string, profilePicture string) *User {
 	return &User{
-		Model: Model{
-			ID: userId,
-		},
+		FirstName:      firstName,
+		LastName:       lastName,
+		Email:          email,
+		Password:       password,
+		Provider:       provider,
+		ProfilePicture: profilePicture,
 	}
 }
 
