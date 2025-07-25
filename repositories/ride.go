@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"zavrsni/yo-yo-car/database"
 	"zavrsni/yo-yo-car/models"
 )
@@ -103,7 +104,9 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 		if !allowedOperators[q.Operator] {
 			return nil, errors.New("invalid search operator: " + q.Operator)
 		}
-		db = db.Where("? "+q.Operator+" ?", db.NamingStrategy.ColumnName("", q.Column), q.Value)
+		columnName := db.NamingStrategy.ColumnName("", q.Column)
+		condition := fmt.Sprintf("%s %s ?", columnName, q.Operator)
+		db = db.Where(condition, q.Value)
 	}
 
 	if err := db.Find(&rides).Error; err != nil {
