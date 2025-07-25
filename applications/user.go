@@ -1,12 +1,15 @@
 package applications
 
 import (
-	"github.com/google/uuid"
 	"mime/multipart"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/shared/storage"
+)
+
+const (
+	defaultProfilePictureUrl = "https://storage.googleapis.com/yoyo-car-no2.firebasestorage.app/profile_pictures/default-profile-picture.png"
 )
 
 func NewUserApplication(
@@ -52,13 +55,7 @@ type CreateUserRequest struct {
 
 /*CreateUser is the User controller method that handles the POST request*/
 func (a *User) CreateUser(request *CreateUserRequest) (*models.User, Exception) {
-	user := models.NewUser(uuid.NewString())
-	user.FirstName = request.FirstName
-	user.LastName = request.LastName
-	user.Email = request.Email
-	user.Password = request.Password
-	user.Provider = request.Provider
-	user, err := a.userRepository.Persist(user)
+	user, err := a.userRepository.Persist(models.NewUser(request.FirstName, request.LastName, request.Email, request.Password, request.Provider, defaultProfilePictureUrl))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
