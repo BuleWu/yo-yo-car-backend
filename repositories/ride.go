@@ -109,7 +109,7 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 		db = db.Where(condition, q.Value)
 	}
 
-	if err := db.Find(&rides).Error; err != nil {
+	if err := db.Preload("Driver").Find(&rides).Error; err != nil {
 		return nil, err
 	}
 	return rides, nil
