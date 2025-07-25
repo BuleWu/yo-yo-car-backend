@@ -116,9 +116,9 @@ func (c *Ride) SearchRides(ctx *gin.Context) {
 		})
 	}
 
-	rides, err := c.rideApplication.SearchRides(queries)
-	if err != nil {
-		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+	rides, appErr := c.rideApplication.SearchRides(queries)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}
 
