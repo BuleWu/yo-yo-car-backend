@@ -62,18 +62,7 @@ func (a *Ride) GetRideById(ID string) (*RideDTO, Exception) {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
-	rideDto := &RideDTO{
-		ID:            ride.ID,
-		StartingPoint: ride.StartingPoint,
-		Destination:   ride.Destination,
-		Price:         ride.Price.Float64(),
-		DriverID:      ride.DriverID,
-		Driver:        ride.Driver,
-		Passengers:    ride.Passengers,
-		MaxPassengers: ride.MaxPassengers,
-		Finished:      ride.Finished,
-		Date:          ride.Date,
-	}
+	rideDto := ToRideDTO(ride)
 
 	return rideDto, nil
 }
