@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
+	"zavrsni/yo-yo-car/core/utils"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 )
@@ -45,10 +47,12 @@ func (a *Ride) GetRideById(ID string) (*models.Ride, Exception) {
 }
 
 type CreateRideRequest struct {
-	StartingPoint string `json:"starting_point"`
-	Destination   string `json:"destination"`
-	DriverID      string `json:"driver_id"`
-	MaxPassengers int    `json:"max_passengers"`
+	StartingPoint string    `json:"starting_point"`
+	Destination   string    `json:"destination"`
+	Price         float64   `json:"price"`
+	DriverID      string    `json:"driver_id"`
+	MaxPassengers int       `json:"max_passengers"`
+	Date          time.Time `json:"date"`
 }
 
 func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) {
@@ -61,7 +65,9 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) 
 		}
 	}
 
-	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, request.DriverID, driver, false, nil, request.MaxPassengers))
+	price := utils.ToEUR(request.Price)
+
+	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, price, request.DriverID, driver, false, nil, request.MaxPassengers, request.Date))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
@@ -69,13 +75,15 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*models.Ride, Exception) 
 }
 
 type UpdateRideRequest struct {
-	RideID        string   `json:"-"`
-	StartingPoint string   `json:"starting_point"`
-	Destination   string   `json:"destination"`
-	DriverID      string   `json:"driver_id"`
-	Finished      bool     `json:"finished"`
-	PassengerIDs  []string `json:"passenger_ids"`
-	MaxPassengers int      `json:"max_passengers"`
+	RideID        string    `json:"-"`
+	StartingPoint string    `json:"starting_point"`
+	Destination   string    `json:"destination"`
+	Price         float64   `json:"price"`
+	DriverID      string    `json:"driver_id"`
+	Finished      bool      `json:"finished"`
+	PassengerIDs  []string  `json:"passenger_ids"`
+	MaxPassengers int       `json:"max_passengers"`
+	Date          time.Time `json:"date"`
 }
 
 func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) {
@@ -90,6 +98,14 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) 
 
 	if request.Destination != "" {
 		ride.Destination = request.Destination
+	}
+
+	if request.Price > 0 {
+		ride.Price = utils.ToEUR(request.Price)
+	}
+
+	if !request.Date.Before(time.Now()) {
+		ride.Date = request.Date
 	}
 
 	var newDriver *models.User

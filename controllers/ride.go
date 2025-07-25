@@ -90,6 +90,7 @@ func (c *Ride) DeleteRide(ctx *gin.Context) {
 func (c *Ride) SearchRides(ctx *gin.Context) {
 	start := ctx.Query("starting_point")
 	dest := ctx.Query("destination")
+	date := ctx.Query("date")
 
 	var queries []repositories.SearchQuery
 
@@ -105,6 +106,13 @@ func (c *Ride) SearchRides(ctx *gin.Context) {
 			Column:   "destination",
 			Operator: "=",
 			Value:    dest,
+		})
+	}
+	if date != "" {
+		queries = append(queries, repositories.SearchQuery{
+			Column:   "date",
+			Operator: ">=",
+			Value:    date,
 		})
 	}
 
