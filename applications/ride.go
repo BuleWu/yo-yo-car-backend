@@ -78,7 +78,7 @@ type UpdateRideRequest struct {
 	RideID        string    `json:"-"`
 	StartingPoint string    `json:"starting_point"`
 	Destination   string    `json:"destination"`
-	Price         float64   `json:"string"`
+	Price         float64   `json:"price"`
 	DriverID      string    `json:"driver_id"`
 	Finished      bool      `json:"finished"`
 	PassengerIDs  []string  `json:"passenger_ids"`
@@ -104,7 +104,7 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*models.Ride, Exception) 
 		ride.Price = utils.ToEUR(request.Price)
 	}
 
-	if request.Date.After(time.Now()) || request.Date.Equal(time.Now()) {
+	if !request.Date.Before(time.Now()) {
 		ride.Date = request.Date
 	}
 
