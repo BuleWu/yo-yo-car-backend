@@ -90,6 +90,7 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 	allowedColumns := map[string]bool{
 		"starting_point": true,
 		"destination":    true,
+		"date":           true,
 	}
 
 	allowedOperators := map[string]bool{
@@ -108,6 +109,8 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 		condition := fmt.Sprintf("%s %s ?", columnName, q.Operator)
 		db = db.Where(condition, q.Value)
 	}
+
+	db = db.Where("finished = ?", false)
 
 	if err := db.Preload("Driver").Find(&rides).Error; err != nil {
 		return nil, err
