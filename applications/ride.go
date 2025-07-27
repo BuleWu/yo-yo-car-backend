@@ -15,6 +15,8 @@ type RideDTO struct {
 	ID            string         `json:"id"`
 	StartingPoint string         `json:"starting_point"`
 	Destination   string         `json:"destination"`
+	StartTime     time.Time      `json:"startTime"`
+	EndTime       time.Time      `json:"endTime"`
 	Price         float64        `json:"price"`
 	Date          time.Time      `json:"date"`
 	DriverID      string         `json:"driver_id"`
@@ -241,6 +243,8 @@ func ToRideDTO(ride *models.Ride) *RideDTO {
 		ID:            ride.ID,
 		StartingPoint: ride.StartingPoint,
 		Destination:   ride.Destination,
+		StartTime:     ride.StartTime,
+		EndTime:       ride.EndTime,
 		Price:         ride.Price.Float64(),
 		DriverID:      ride.DriverID,
 		Driver:        ride.Driver,
