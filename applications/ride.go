@@ -145,7 +145,7 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 		return nil, NewApplicationException(http.StatusBadRequest, errors.New("start time must be on the same calendar day as the date"))
 	}
 
-	if request.EndTime.Before(ride.StartTime) {
+	if request.EndTime.Before(request.StartTime) {
 		return nil, NewApplicationException(http.StatusBadRequest, errors.New("end time must be after start time"))
 	}
 
