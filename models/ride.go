@@ -28,7 +28,7 @@ type Ride struct {
 	Destination   string `json:"destination"`
 
 	StartTime time.Time `json:"start_time" gorm:"not null"`
-	EndTime   time.Time `json:"end_time" gorm:"not null`
+	EndTime   time.Time `json:"end_time" gorm:"not null"`
 
 	Price utils.EUR `json:"price"`
 

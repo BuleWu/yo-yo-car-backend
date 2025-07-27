@@ -41,7 +41,7 @@ func (repo *Ride) GetById(ID string) (*models.Ride, error) {
 	db := repo.conn.GetConnection()
 	var record models.Ride
 
-	if err := db.Preload("Driver").First(&record, "id = ?", ID).Error; err != nil {
+	if err := db.Preload("Driver").Preload("Passengers").First(&record, "id = ?", ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -113,7 +113,7 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 
 	db = db.Where("finished = ?", false)
 
-	if err := db.Preload("Driver").Find(&rides).Error; err != nil {
+	if err := db.Preload("Driver").Preload("Passengers").Find(&rides).Error; err != nil {
 		return nil, err
 	}
 	return rides, nil
