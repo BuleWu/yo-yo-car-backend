@@ -96,6 +96,7 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 	allowedOperators := map[string]bool{
 		"=":    true,
 		"LIKE": true,
+		">=":   true,
 	}
 
 	for _, q := range query {

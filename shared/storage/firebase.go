@@ -10,9 +10,9 @@ import (
 
 func UploadProfilePicture(file multipart.File, header *multipart.FileHeader, userID string) (string, error) {
 	// Validate file size
-	const maxFileSize = 5 * 1024 * 1024 // 5 MB
+	const maxFileSize = 2 * 1024 * 1024 // 2 MB
 	if header.Size > maxFileSize {
-		return "", fmt.Errorf("file size exceeds the maximum limit of 5 MB")
+		return "", fmt.Errorf("file size exceeds the maximum limit of 2 MB")
 	}
 
 	// Sanitize filename

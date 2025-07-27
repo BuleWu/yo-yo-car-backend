@@ -1,6 +1,7 @@
 package applications
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -70,6 +71,8 @@ func (a *Ride) GetRideById(ID string) (*RideDTO, Exception) {
 type CreateRideRequest struct {
 	StartingPoint string    `json:"starting_point"`
 	Destination   string    `json:"destination"`
+	StartTime     time.Time `json:"start_time"`
+	EndTime       time.Time `json:"end_time"`
 	Price         float64   `json:"price"`
 	DriverID      string    `json:"driver_id"`
 	MaxPassengers int       `json:"max_passengers"`
@@ -88,7 +91,7 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*RideDTO, Exception) {
 
 	price := utils.ToEUR(request.Price)
 
-	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, price, request.DriverID, driver, false, nil, request.MaxPassengers, request.Date))
+	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, request.StartTime, request.EndTime, price, request.DriverID, driver, false, nil, request.MaxPassengers, request.Date))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
@@ -102,6 +105,8 @@ type UpdateRideRequest struct {
 	RideID        string    `json:"-"`
 	StartingPoint string    `json:"starting_point"`
 	Destination   string    `json:"destination"`
+	StartTime     time.Time `json:"start_time"`
+	EndTime       time.Time `json:"end_time"`
 	Price         float64   `json:"price"`
 	DriverID      string    `json:"driver_id"`
 	Finished      bool      `json:"finished"`
@@ -128,9 +133,25 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 		ride.Price = utils.ToEUR(request.Price)
 	}
 
-	if !request.Date.Before(time.Now()) {
-		ride.Date = request.Date
+	if request.Date.Before(time.Now()) {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("date must be today or in the future"))
 	}
+
+	if request.StartTime.Before(time.Now()) {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("start time must be in the future"))
+	}
+
+	if !sameDay(request.StartTime, request.Date) {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("start time must be on the same calendar day as the date"))
+	}
+
+	if request.EndTime.Before(ride.StartTime) {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("end time must be after start time"))
+	}
+
+	ride.Date = request.Date
+	ride.StartTime = request.StartTime
+	ride.EndTime = request.EndTime
 
 	var newDriver *models.User
 
@@ -228,4 +249,10 @@ func ToRideDTO(ride *models.Ride) *RideDTO {
 		Finished:      ride.Finished,
 		Date:          ride.Date,
 	}
+}
+
+func sameDay(t1, t2 time.Time) bool {
+	y1, m1, d1 := t1.Date()
+	y2, m2, d2 := t2.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
 }
