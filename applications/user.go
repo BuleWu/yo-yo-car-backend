@@ -1,8 +1,10 @@
 package applications
 
 import (
+	"errors"
 	"mime/multipart"
 	"net/http"
+	"zavrsni/yo-yo-car/core/utils"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/shared/storage"
@@ -62,6 +64,48 @@ func (a *User) CreateUser(request *CreateUserRequest) (*models.User, Exception) 
 	return user, nil
 }
 
+type UpdateUserRequest struct {
+	UserID    string `json:"-"`
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Vehicle   string `json:"vehicle"`
+}
+
+func (a *User) UpdateUser(request *UpdateUserRequest) (*models.User, Exception) {
+	user, err := a.userRepository.GetById(request.UserID)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	if request.FirstName != "" {
+		user.FirstName = request.FirstName
+	}
+
+	if request.LastName != "" {
+		user.LastName = request.LastName
+	}
+
+	if request.Email != "" {
+		existingUser, _ := a.userRepository.GetByEmail(request.Email)
+		if existingUser != nil {
+			return nil, NewApplicationException(http.StatusConflict, errors.New("an account with this email already exists"))
+		}
+		user.Email = request.Email
+	}
+
+	if request.Vehicle != "" {
+		user.Vehicle = request.Vehicle
+	}
+
+	user, err = a.userRepository.Update(user)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	return user, nil
+}
+
 func (a *User) DeleteUser(userId string) Exception {
 	err := a.userRepository.Delete(userId)
 
@@ -83,4 +127,33 @@ func (u *User) UploadProfilePicture(userID string, file multipart.File, header *
 	}
 
 	return url, nil
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword" binding:"required"`
+	NewPassword     string `json:"newPassword" binding:"required"`
+}
+
+func (a *User) ChangePassword(userID string, request *ChangePasswordRequest) Exception {
+	user, err := a.userRepository.GetById(userID)
+	if err != nil {
+		return NewApplicationException(http.StatusNotFound, err)
+	}
+
+	if !utils.VerifyPassword(user.Password, request.CurrentPassword) {
+		return NewApplicationException(http.StatusUnauthorized, errors.New("current password is incorrect"))
+	}
+
+	hashedNewPassword, err := utils.HashPassword(request.NewPassword)
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, errors.New("could not hash new password"))
+	}
+
+	user.Password = hashedNewPassword
+
+	if _, err = a.userRepository.Update(user); err != nil {
+		return NewApplicationException(http.StatusInternalServerError, errors.New("failed to update password"))
+	}
+
+	return nil
 }

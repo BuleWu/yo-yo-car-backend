@@ -37,7 +37,7 @@ func (c *User) GetUser(ctx *gin.Context) {
 func (c *User) CreateUser(ctx *gin.Context) {
 	var request applications.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -49,16 +49,32 @@ func (c *User) CreateUser(ctx *gin.Context) {
 	c.returnJSON(ctx, data, http.StatusCreated)
 }
 
+func (c *User) UpdateUser(ctx *gin.Context) {
+	var request applications.UpdateUserRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	request.UserID = ctx.Param("id")
+
+	user, appErr := c.userApplication.UpdateUser(&request)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+	c.returnJSON(ctx, user, http.StatusOK)
+}
+
 func (c *User) DeleteUser(ctx *gin.Context) {
-	userId := ctx.Param("id")
-	appErr := c.userApplication.DeleteUser(userId)
+	appErr := c.userApplication.DeleteUser(ctx.Param("id"))
 
 	if appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}
 
-	c.returnJSON(ctx, "deleted", http.StatusOK)
+	c.returnJSON(ctx, nil, http.StatusNoContent)
 }
 
 func (c *User) UploadProfilePicture(ctx *gin.Context) {
@@ -78,4 +94,27 @@ func (c *User) UploadProfilePicture(ctx *gin.Context) {
 	}
 
 	c.returnJSON(ctx, url, http.StatusOK)
+}
+
+func (c *User) ChangePassword(ctx *gin.Context) {
+	userIDValue, exists := ctx.Get("user_id")
+	if !exists {
+		c.returnJSON(ctx, utils.NewHttpError("Unauthorized"), http.StatusUnauthorized)
+		return
+	}
+	userID := userIDValue.(string)
+
+	var request applications.ChangePasswordRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusBadRequest)
+		return
+	}
+
+	appErr := c.userApplication.ChangePassword(userID, &request)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, nil, http.StatusOK)
 }
