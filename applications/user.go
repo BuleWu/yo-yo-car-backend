@@ -87,9 +87,9 @@ func (a *User) UpdateUser(request *UpdateUserRequest) (*models.User, Exception) 
 	}
 
 	if request.Email != "" {
-		user, _ = a.userRepository.GetByEmail(request.Email)
-		if user != nil {
-			return nil, NewApplicationException(http.StatusNotFound, errors.New("an account with this email already exists"))
+		existingUser, _ := a.userRepository.GetByEmail(request.Email)
+		if existingUser != nil {
+			return nil, NewApplicationException(http.StatusConflict, errors.New("an account with this email already exists"))
 		}
 		user.Email = request.Email
 	}
@@ -141,7 +141,7 @@ func (a *User) ChangePassword(userID string, request *ChangePasswordRequest) Exc
 	}
 
 	if !utils.VerifyPassword(user.Password, request.CurrentPassword) {
-		return NewApplicationException(http.StatusInternalServerError, errors.New("current password is incorrect"))
+		return NewApplicationException(http.StatusUnauthorized, errors.New("current password is incorrect"))
 	}
 
 	hashedNewPassword, err := utils.HashPassword(request.NewPassword)

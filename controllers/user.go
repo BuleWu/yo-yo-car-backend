@@ -37,7 +37,7 @@ func (c *User) GetUser(ctx *gin.Context) {
 func (c *User) CreateUser(ctx *gin.Context) {
 	var request applications.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (c *User) CreateUser(ctx *gin.Context) {
 func (c *User) UpdateUser(ctx *gin.Context) {
 	var request applications.UpdateUserRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusBadRequest)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (c *User) ChangePassword(ctx *gin.Context) {
 
 	var request applications.ChangePasswordRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusBadRequest)
 		return
 	}
 
