@@ -6,7 +6,7 @@ import (
 	"zavrsni/yo-yo-car/repositories"
 )
 
-func NewReservation(reservationRepository repositories.Reservation, userRepository repositories.UserRepository, rideRepository repositories.RideRepository) *Reservation {
+func NewReservationApplication(reservationRepository repositories.ReservationRepository, userRepository repositories.UserRepository, rideRepository repositories.RideRepository) *Reservation {
 	return &Reservation{
 		reservationRepository: reservationRepository,
 		userRepository:        userRepository,
@@ -16,7 +16,7 @@ func NewReservation(reservationRepository repositories.Reservation, userReposito
 
 type Reservation struct {
 	Application
-	reservationRepository repositories.Reservation
+	reservationRepository repositories.ReservationRepository
 	userRepository        repositories.UserRepository
 	rideRepository        repositories.RideRepository
 }

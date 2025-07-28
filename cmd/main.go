@@ -18,11 +18,12 @@ import (
 )
 
 var (
-	userController   *controllers.User
-	authController   *controllers.Auth
-	rideController   *controllers.Ride
-	ratingController *controllers.Rating
-	conn             *database.Connection
+	userController        *controllers.User
+	authController        *controllers.Auth
+	rideController        *controllers.Ride
+	ratingController      *controllers.Rating
+	reservationController *controllers.Reservation
+	conn                  *database.Connection
 )
 
 func main() {
@@ -57,6 +58,12 @@ func main() {
 		repositories.NewUserRepository(conn),
 	)
 
+	reservationApplication := applications.NewReservationApplication(
+		repositories.NewReservationRepository(conn),
+		repositories.NewUserRepository(conn),
+		repositories.NewRideRepository(conn),
+	)
+
 	userController = controllers.NewUserController(
 		userApplication,
 	)
@@ -73,6 +80,10 @@ func main() {
 		ratingApplication,
 	)
 
+	reservationController = controllers.NewReservationController(
+		reservationApplication,
+	)
+
 	r := gin.Default()
 
 	config := cors.Config{
@@ -84,19 +95,6 @@ func main() {
 	}
 
 	r.Use(cors.New(config))
-
-	/*publicRoutes := r.Group("/public")
-	{
-		publicRoutes.POST("/login", handlers.Login)
-		publicRoutes.POST("/register", handlers.Register)
-		//publicRoutes.POST("/user", userController.CreateUser)
-	}*/
-
-	/*protectedRoutes := r.Group("/protected")
-	protectedRoutes.Use(middleware.AuthenticationMiddleware())
-	{
-		// Protected routes here
-	}*/
 
 	authRoutes := r.Group("/auth")
 	{
@@ -134,6 +132,11 @@ func main() {
 		apiRoutes.DELETE("/ratings/:id", ratingController.DeleteRating)
 
 		/*reservation APIs*/
+		apiRoutes.GET("/reservations", reservationController.GetAllReservations)
+		apiRoutes.GET("/reservations/:id", reservationController.GetReservationById)
+		apiRoutes.POST("/reservations", reservationController.CreateReservation)
+		apiRoutes.PUT("/reservations/:id", reservationController.UpdateReservation)
+		apiRoutes.DELETE("/reservations/:id", reservationController.DeleteReservation)
 
 		/*conversation APIs*/
 

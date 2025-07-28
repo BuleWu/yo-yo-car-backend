@@ -5,7 +5,7 @@ import (
 	"zavrsni/yo-yo-car/models"
 )
 
-func NewReservation(db *database.Connection) *Reservation {
+func NewReservationRepository(db *database.Connection) ReservationRepository {
 	return &Reservation{
 		conn: db,
 	}

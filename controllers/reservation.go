@@ -7,7 +7,7 @@ import (
 	"zavrsni/yo-yo-car/core/utils"
 )
 
-func NewReservationController(reservationApplication applications.Reservation) *Reservation {
+func NewReservationController(reservationApplication *applications.Reservation) *Reservation {
 	return &Reservation{
 		reservationApplication: reservationApplication,
 	}
@@ -15,7 +15,7 @@ func NewReservationController(reservationApplication applications.Reservation) *
 
 type Reservation struct {
 	Controller
-	reservationApplication applications.Reservation
+	reservationApplication *applications.Reservation
 }
 
 // CreateReservation POST /reservations
