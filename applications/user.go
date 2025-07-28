@@ -62,6 +62,39 @@ func (a *User) CreateUser(request *CreateUserRequest) (*models.User, Exception) 
 	return user, nil
 }
 
+type UpdateUserRequest struct {
+	UserID    string `json:"-"`
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+}
+
+func (a *User) UpdateUser(request *UpdateUserRequest) (*models.User, Exception) {
+	user, err := a.userRepository.GetById(request.UserID)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	if request.FirstName != "" {
+		user.FirstName = request.FirstName
+	}
+
+	if request.LastName != "" {
+		user.LastName = request.LastName
+	}
+
+	if request.Email != "" {
+		user.Email = request.Email
+	}
+
+	user, err = a.userRepository.Update(user)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	return user, nil
+}
+
 func (a *User) DeleteUser(userId string) Exception {
 	err := a.userRepository.Delete(userId)
 

@@ -112,6 +112,8 @@ func main() {
 		/*user APIs*/
 		apiRoutes.GET("/users/:id", userController.GetUser)
 		apiRoutes.POST("/users", userController.CreateUser)
+		apiRoutes.PUT("/users/:id", userController.UpdateUser)
+		apiRoutes.PUT("/users/:id", userController.UpdatePassword)
 		apiRoutes.DELETE("/users/:id", userController.DeleteUser)
 		apiRoutes.POST("/users/:id/profile-picture", userController.UploadProfilePicture)
 

@@ -49,9 +49,25 @@ func (c *User) CreateUser(ctx *gin.Context) {
 	c.returnJSON(ctx, data, http.StatusCreated)
 }
 
+func (c *User) UpdateUser(ctx *gin.Context) {
+	var request applications.UpdateUserRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	request.UserID = ctx.Param("id")
+
+	user, appErr := c.userApplication.UpdateUser(&request)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+	c.returnJSON(ctx, user, http.StatusOK)
+}
+
 func (c *User) DeleteUser(ctx *gin.Context) {
-	userId := ctx.Param("id")
-	appErr := c.userApplication.DeleteUser(userId)
+	appErr := c.userApplication.DeleteUser(ctx.Param("id"))
 
 	if appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())

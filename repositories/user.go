@@ -17,6 +17,7 @@ type UserRepository interface {
 	Persist(user *models.User) (*models.User, error)
 	GetById(ID string) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
+	Update(user *models.User) (*models.User, error)
 	Delete(ID string) error
 	UpdateProfilePicture(ID string, url string) error
 }
@@ -64,6 +65,20 @@ func (repo *User) Persist(record *models.User) (*models.User, error) {
 	if err := db.Create(record).Error; err != nil {
 		return nil, err
 	}
+	return record, nil
+}
+
+func (repo *User) Update(record *models.User) (*models.User, error) {
+	db := repo.conn.GetConnection()
+
+	if err := db.Save(record).Error; err != nil {
+		return nil, err
+	}
+
+	if err := db.First(record, "id = ?", record.ID).Error; err != nil {
+		return nil, err
+	}
+
 	return record, nil
 }
 
