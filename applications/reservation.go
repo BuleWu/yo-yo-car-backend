@@ -1,6 +1,8 @@
 package applications
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
@@ -28,12 +30,20 @@ type CreateReservationRequest struct {
 }
 
 func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*models.Reservation, Exception) {
-	if _, err := a.userRepository.GetById(request.UserID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("User with ID %s not found: %w", request.UserID, err))
+	if request.UserID != "" {
+		if _, err := a.userRepository.GetById(request.UserID); err != nil {
+			return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with ID %s not found: %w", request.UserID, err))
+		}
 	}
 
-	if _, err := a.rideRepository.GetById(request.RideID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("Ride with ID %s not found: %w", request.RideID, err))
+	if request.RideID != "" {
+		if _, err := a.rideRepository.GetById(request.RideID); err != nil {
+			return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with ID %s not found: %w", request.RideID, err))
+		}
+	}
+
+	if !isValidReservationStatus(request.Status) {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("not a valid status"))
 	}
 
 	reservation, err := a.reservationRepository.Persist(models.NewReservation(request.UserID, request.RideID, request.Status))
@@ -70,7 +80,9 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
 
-	reservation.Status = request.Status
+	if isValidReservationStatus(request.Status) {
+		reservation.Status = request.Status
+	}
 
 	updated, err := a.reservationRepository.Update(reservation)
 	if err != nil {
@@ -91,4 +103,13 @@ func (a *Reservation) DeleteReservation(id string) Exception {
 	}
 
 	return nil
+}
+
+func isValidReservationStatus(status models.ReservationStatus) bool {
+	switch status {
+	case models.Pending, models.Confirmed, models.Cancelled, models.Completed:
+		return true
+	default:
+		return false
+	}
 }
