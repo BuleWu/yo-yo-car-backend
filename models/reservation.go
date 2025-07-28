@@ -1,7 +1,16 @@
 package models
 
+type ReservationStatus string
+
+const (
+	Pending   ReservationStatus = "pending"
+	Confirmed ReservationStatus = "confirmed"
+	Cancelled ReservationStatus = "cancelled"
+	Completed ReservationStatus = "completed"
+)
+
 // NewReservation constructor for creating a new reservation instance
-func NewReservation(userId string, rideId string, status string) *Reservation {
+func NewReservation(userId string, rideId string, status ReservationStatus) *Reservation {
 	return &Reservation{
 		UserID: userId,
 		RideID: rideId,
@@ -11,7 +20,7 @@ func NewReservation(userId string, rideId string, status string) *Reservation {
 
 type Reservation struct {
 	Model
-	UserID string `json:"user_id"`
-	RideID string `json:"ride_id"`
-	Status string `json:"status"`
+	UserID string            `json:"user_id"`
+	RideID string            `json:"ride_id"`
+	Status ReservationStatus `json:"status"`
 }
