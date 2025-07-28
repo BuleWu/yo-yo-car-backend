@@ -10,7 +10,7 @@ type Model struct {
 	ID        string         `json:"id" gorm:"type:char(36);primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 }
 
 func (m *Model) BeforeCreate(scope *gorm.DB) error {
