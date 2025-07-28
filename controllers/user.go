@@ -95,3 +95,26 @@ func (c *User) UploadProfilePicture(ctx *gin.Context) {
 
 	c.returnJSON(ctx, url, http.StatusOK)
 }
+
+func (c *User) ChangePassword(ctx *gin.Context) {
+	userIDValue, exists := ctx.Get("user_id")
+	if !exists {
+		c.returnJSON(ctx, utils.NewHttpError("Unauthorized"), http.StatusUnauthorized)
+		return
+	}
+	userID := userIDValue.(string)
+
+	var request applications.ChangePasswordRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	appErr := c.userApplication.ChangePassword(userID, req)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, "Password changed successfully", http.StatusOK)
+}

@@ -1,6 +1,7 @@
 package applications
 
 import (
+	"errors"
 	"mime/multipart"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
@@ -67,6 +68,7 @@ type UpdateUserRequest struct {
 	FirstName string `json:"first_name" binding:"required"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
+	Vehicle   string `json:"vehicle"`
 }
 
 func (a *User) UpdateUser(request *UpdateUserRequest) (*models.User, Exception) {
@@ -84,7 +86,15 @@ func (a *User) UpdateUser(request *UpdateUserRequest) (*models.User, Exception) 
 	}
 
 	if request.Email != "" {
+		user, _ = a.userRepository.GetByEmail(request.Email)
+		if user != nil {
+			return nil, NewApplicationException(http.StatusNotFound, errors.New("an account with this email already exists"))
+		}
 		user.Email = request.Email
+	}
+
+	if request.Vehicle != "" {
+		user.Vehicle = request.Vehicle
 	}
 
 	user, err = a.userRepository.Update(user)
@@ -116,4 +126,9 @@ func (u *User) UploadProfilePicture(userID string, file multipart.File, header *
 	}
 
 	return url, nil
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword" binding:"required"`
+	NewPassword     string `json:"newPassword" binding:"required"`
 }
