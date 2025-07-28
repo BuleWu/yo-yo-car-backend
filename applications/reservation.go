@@ -29,11 +29,11 @@ type CreateReservationRequest struct {
 
 func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*models.Reservation, Exception) {
 	if _, err := a.userRepository.GetById(request.UserID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, err)
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("User with ID %s not found: %w", request.UserID, err))
 	}
 
 	if _, err := a.rideRepository.GetById(request.RideID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, err)
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("Ride with ID %s not found: %w", request.RideID, err))
 	}
 
 	reservation, err := a.reservationRepository.Persist(models.NewReservation(request.UserID, request.RideID, request.Status))
