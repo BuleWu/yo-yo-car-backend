@@ -4,6 +4,7 @@ import (
 	"errors"
 	"mime/multipart"
 	"net/http"
+	"zavrsni/yo-yo-car/core/utils"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/shared/storage"
@@ -131,4 +132,28 @@ func (u *User) UploadProfilePicture(userID string, file multipart.File, header *
 type ChangePasswordRequest struct {
 	CurrentPassword string `json:"currentPassword" binding:"required"`
 	NewPassword     string `json:"newPassword" binding:"required"`
+}
+
+func (a *User) ChangePassword(userID string, request *ChangePasswordRequest) Exception {
+	user, err := a.userRepository.GetById(userID)
+	if err != nil {
+		return NewApplicationException(http.StatusNotFound, err)
+	}
+
+	if !utils.VerifyPassword(user.Password, request.CurrentPassword) {
+		return NewApplicationException(http.StatusInternalServerError, errors.New("current password is incorrect"))
+	}
+
+	hashedNewPassword, err := utils.HashPassword(request.NewPassword)
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, errors.New("could not hash new password"))
+	}
+
+	user.Password = hashedNewPassword
+
+	if _, err = a.userRepository.Update(user); err != nil {
+		return NewApplicationException(http.StatusInternalServerError, errors.New("failed to update password"))
+	}
+
+	return nil
 }

@@ -74,7 +74,7 @@ func (c *User) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	c.returnJSON(ctx, "deleted", http.StatusOK)
+	c.returnJSON(ctx, nil, http.StatusNoContent)
 }
 
 func (c *User) UploadProfilePicture(ctx *gin.Context) {
@@ -110,11 +110,11 @@ func (c *User) ChangePassword(ctx *gin.Context) {
 		return
 	}
 
-	appErr := c.userApplication.ChangePassword(userID, req)
+	appErr := c.userApplication.ChangePassword(userID, &request)
 	if appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}
 
-	c.returnJSON(ctx, "Password changed successfully", http.StatusOK)
+	c.returnJSON(ctx, nil, http.StatusOK)
 }
