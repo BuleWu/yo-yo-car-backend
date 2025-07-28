@@ -133,6 +133,8 @@ func main() {
 		apiRoutes.PUT("/ratings/:id", ratingController.UpdateRating)
 		apiRoutes.DELETE("/ratings/:id", ratingController.DeleteRating)
 
+		/*reservation APIs*/
+
 		/*conversation APIs*/
 
 		/*message APIs*/
