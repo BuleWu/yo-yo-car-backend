@@ -152,7 +152,7 @@ func main() {
 	firebase.InitFirebase(ctx, credentialsFile, projectID, storageBucket)
 	defer firebase.Client.Close()
 
-	if err := r.Run("localhost:8080"); err != nil {
+	if err = r.Run("localhost:8080"); err != nil {
 		log.Fatalf("error while trying to run server: %v\n", err)
 	}
 }
