@@ -103,6 +103,34 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
+	if updated.Status == models.Confirmed {
+		var passenger *models.User
+		if passenger, err = a.userRepository.GetById(updated.UserID); err != nil {
+			fmt.Printf("user with id %s not found: %v", updated.UserID, err)
+		}
+
+		var ride *models.Ride
+		if ride, err = a.rideRepository.GetById(updated.RideID); err != nil {
+			return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with ID %s not found: %w", updated.RideID, err))
+		}
+
+		var driver *models.User
+
+		if driver, err = a.userRepository.GetById(ride.DriverID); err != nil {
+			fmt.Printf("user with id %s not found", ride.DriverID)
+		}
+
+		formattedDate := ride.Date.Format("02 Jan 2006 at 15:04")
+
+		emailBody := fmt.Sprintf("Great news! %s %s has confirmed your reservation on %s from %s to %s.", driver.FirstName, driver.LastName, formattedDate, ride.StartingPoint, ride.Destination)
+
+		go func() {
+			if err = email.SendEmail(passenger.Email, email.ReservationConfirmedSubject, emailBody); err != nil {
+				fmt.Printf("Failed to send email: %v\n", err)
+			}
+		}()
+	}
+
 	return updated, nil
 }
 

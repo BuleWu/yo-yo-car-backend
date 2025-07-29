@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	ReservationMadeSubject string = "Reservation made"
+	ReservationMadeSubject      string = "Reservation made"
+	ReservationConfirmedSubject string = "Reservation confirmed"
 )
 
 func SendEmail(to string, subject string, body string) error {
