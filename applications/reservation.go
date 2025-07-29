@@ -120,7 +120,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 			fmt.Printf("user with id %s not found", ride.DriverID)
 		}
 
-		formattedDate := ride.Date.Format("02 Jan 2006 at 15:04")
+		formattedDate := ride.StartTime.Format("02 Jan 2006 at 15:04")
 
 		emailBody := fmt.Sprintf("Great news! %s %s has confirmed your reservation on %s from %s to %s.", driver.FirstName, driver.LastName, formattedDate, ride.StartingPoint, ride.Destination)
 
