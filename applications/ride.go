@@ -29,17 +29,20 @@ type RideDTO struct {
 func NewRideApplication(
 	rideRepository repositories.RideRepository,
 	userRepository repositories.UserRepository,
+	reservationRepository repositories.ReservationRepository,
 ) *Ride {
 	return &Ride{
-		rideRepository: rideRepository,
-		userRepository: userRepository,
+		rideRepository:        rideRepository,
+		userRepository:        userRepository,
+		reservationRepository: reservationRepository,
 	}
 }
 
 type Ride struct {
 	Application
-	rideRepository repositories.RideRepository
-	userRepository repositories.UserRepository
+	rideRepository        repositories.RideRepository
+	userRepository        repositories.UserRepository
+	reservationRepository repositories.ReservationRepository
 }
 
 func (a *Ride) GetRides() ([]*RideDTO, Exception) {
@@ -215,6 +218,23 @@ func (a *Ride) SearchRides(queries []repositories.SearchQuery) ([]*RideDTO, Exce
 	}
 
 	return rideDtos, nil
+}
+
+func (a *Ride) GetRideReservations(rideID string) ([]*models.Reservation, Exception) {
+	if rideID == "" {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("ride ID must be provided"))
+	}
+
+	if _, err := a.rideRepository.GetById(rideID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	reservations, err := a.reservationRepository.GetByRideId(rideID)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return reservations, nil
 }
 
 func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *ApplicationException) {

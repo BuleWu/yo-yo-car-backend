@@ -124,3 +124,14 @@ func (c *Ride) SearchRides(ctx *gin.Context) {
 
 	c.returnJSON(ctx, rides, http.StatusOK)
 }
+
+// GetRideReservations GET /rides/:id/reservations
+func (c *Ride) GetRideReservations(ctx *gin.Context) {
+	reservations, appErr := c.rideApplication.GetRideReservations(ctx.Param("id"))
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, reservations, http.StatusOK)
+}

@@ -51,6 +51,7 @@ func main() {
 	rideApplication := applications.NewRideApplication(
 		repositories.NewRideRepository(conn),
 		repositories.NewUserRepository(conn),
+		repositories.NewReservationRepository(conn),
 	)
 
 	ratingApplication := applications.NewRatingApplication(
@@ -123,6 +124,7 @@ func main() {
 		apiRoutes.PUT("/rides/:id", rideController.UpdateRide)
 		apiRoutes.DELETE("/rides/:id", rideController.DeleteRide)
 		apiRoutes.GET("/rides/search", rideController.SearchRides)
+		apiRoutes.GET("/rides/:id/reservations", rideController.GetRideReservations)
 
 		/*rating APIs*/
 		apiRoutes.GET("/ratings", ratingController.GetRatings)
