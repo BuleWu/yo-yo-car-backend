@@ -6,17 +6,20 @@ import (
 	"zavrsni/yo-yo-car/runtimebag"
 )
 
+func InitEmail() error {
+	err := godotenv.Load()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 const (
 	ReservationMadeSubject      string = "Reservation made"
 	ReservationConfirmedSubject string = "Reservation confirmed"
 )
 
 func SendEmail(to string, subject string, body string) error {
-	err := godotenv.Load()
-	if err != nil {
-		return err
-	}
-
 	message := gomail.NewMessage()
 
 	message.SetHeader("From", runtimebag.GetEnvString("APPLICATION_EMAIL", ""))
@@ -27,9 +30,9 @@ func SendEmail(to string, subject string, body string) error {
 
 	dialer := gomail.NewDialer(runtimebag.GetEnvString("MAILTRAP_HOST", ""), int(runtimebag.GetEnvInt("MAILTRAP_PORT", 587)), runtimebag.GetEnvString("MAILTRAP_USERNAME", "api"), runtimebag.GetEnvString("MAILTRAP_PASSWORD", ""))
 
-	if err = dialer.DialAndSend(message); err != nil {
+	if err := dialer.DialAndSend(message); err != nil {
 		return err
-	} else {
-		return nil
 	}
+
+	return nil
 }

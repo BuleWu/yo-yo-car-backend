@@ -56,7 +56,7 @@ func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*mod
 	}
 
 	passenger, _ := a.userRepository.GetById(request.UserID)
-	emailBody := fmt.Sprintf("You received a new reservation from %s %s. Click here to cofirm.", passenger.FirstName, passenger.LastName)
+	emailBody := fmt.Sprintf("You received a new reservation from %s %s. Click here to confirm.", passenger.FirstName, passenger.LastName)
 
 	go func() {
 		if err = email.SendEmail(driver.Email, email.ReservationMadeSubject, emailBody); err != nil {
@@ -117,7 +117,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		var driver *models.User
 
 		if driver, err = a.userRepository.GetById(ride.DriverID); err != nil {
-			fmt.Printf("user with id %s not found", ride.DriverID)
+			fmt.Printf("user with id %s not found: %v", ride.DriverID, err)
 		}
 
 		formattedDate := ride.StartTime.Format("02 Jan 2006 at 15:04")
