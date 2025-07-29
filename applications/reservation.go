@@ -1,9 +1,9 @@
 package applications
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
+	"zavrsni/yo-yo-car/email"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 )
@@ -24,9 +24,8 @@ type Reservation struct {
 }
 
 type CreateReservationRequest struct {
-	UserID string                   `json:"user_id"`
-	RideID string                   `json:"ride_id"`
-	Status models.ReservationStatus `json:"status"`
+	UserID string `json:"user_id"`
+	RideID string `json:"ride_id"`
 }
 
 func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*models.Reservation, Exception) {
@@ -36,20 +35,35 @@ func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*mod
 		}
 	}
 
+	var ride *models.Ride
+	var err error
+
 	if request.RideID != "" {
-		if _, err := a.rideRepository.GetById(request.RideID); err != nil {
+		if ride, err = a.rideRepository.GetById(request.RideID); err != nil {
 			return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with ID %s not found: %w", request.RideID, err))
 		}
 	}
 
-	if !isValidReservationStatus(request.Status) {
-		return nil, NewApplicationException(http.StatusBadRequest, errors.New("not a valid status"))
-	}
-
-	reservation, err := a.reservationRepository.Persist(models.NewReservation(request.UserID, request.RideID, request.Status))
+	reservation, err := a.reservationRepository.Persist(models.NewReservation(request.UserID, request.RideID, models.Pending))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
+
+	var driver *models.User
+
+	if driver, err = a.userRepository.GetById(ride.DriverID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with ID %s not found: %w", ride.DriverID, err))
+	}
+
+	passenger, _ := a.userRepository.GetById(request.UserID)
+	emailBody := fmt.Sprintf("You received a new reservation from %s %s. Click here to cofirm.", passenger.FirstName, passenger.LastName)
+
+	go func() {
+		if err = email.SendEmail(driver.Email, email.ReservationMadeSubject, emailBody); err != nil {
+			fmt.Printf("Failed to send email: %v\n", err)
+		}
+	}()
+
 	return reservation, nil
 }
 
