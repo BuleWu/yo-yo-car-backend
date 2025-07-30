@@ -17,6 +17,7 @@ func InitEmail() error {
 const (
 	ReservationMadeSubject      string = "Reservation made"
 	ReservationConfirmedSubject string = "Reservation confirmed"
+	ReservationCancelledSubject string = "Reservation cancelled"
 )
 
 func SendEmail(to string, subject string, body string) error {

@@ -64,6 +64,10 @@ func (repo *Ride) Persist(ride *models.Ride) (*models.Ride, error) {
 func (repo *Ride) Update(record *models.Ride) (*models.Ride, error) {
 	db := repo.conn.GetConnection()
 
+	if err := db.Model(record).Association("Passengers").Replace(record.Passengers); err != nil {
+		return nil, err
+	}
+	
 	if err := db.Save(record).Error; err != nil {
 		return nil, err
 	}

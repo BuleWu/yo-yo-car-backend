@@ -103,29 +103,58 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
-	if updated.Status == models.Confirmed {
-		var passenger *models.User
-		if passenger, err = a.userRepository.GetById(updated.UserID); err != nil {
-			fmt.Printf("user with id %s not found: %v", updated.UserID, err)
+	passenger, _ := a.userRepository.GetById(updated.UserID)
+	ride, rideErr := a.rideRepository.GetById(updated.RideID)
+	driver, _ := a.userRepository.GetById(ride.DriverID)
+
+	if rideErr != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with ID %s not found: %w", updated.RideID, rideErr))
+	}
+
+	formattedDate := ride.StartTime.Format("02 Jan 2006 at 15:04")
+
+	switch updated.Status {
+	case models.Confirmed:
+		if ride.Passengers == nil {
+			ride.Passengers = make([]*models.User, 0)
+		}
+		ride.Passengers = append(ride.Passengers, passenger)
+
+		if _, err = a.rideRepository.Update(ride); err != nil {
+			return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("could not update ride with ID %s: %w", updated.RideID, err))
 		}
 
-		var ride *models.Ride
-		if ride, err = a.rideRepository.GetById(updated.RideID); err != nil {
-			return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with ID %s not found: %w", updated.RideID, err))
-		}
-
-		var driver *models.User
-
-		if driver, err = a.userRepository.GetById(ride.DriverID); err != nil {
-			fmt.Printf("user with id %s not found: %v", ride.DriverID, err)
-		}
-
-		formattedDate := ride.StartTime.Format("02 Jan 2006 at 15:04")
-
-		emailBody := fmt.Sprintf("Great news! %s %s has confirmed your reservation on %s from %s to %s.", driver.FirstName, driver.LastName, formattedDate, ride.StartingPoint, ride.Destination)
+		emailBody := fmt.Sprintf(
+			"Great news! %s %s has confirmed their reservation on your ride on %s from %s to %s.",
+			passenger.FirstName, passenger.LastName, formattedDate, ride.StartingPoint, ride.Destination,
+		)
 
 		go func() {
-			if err = email.SendEmail(passenger.Email, email.ReservationConfirmedSubject, emailBody); err != nil {
+			if err = email.SendEmail(driver.Email, email.ReservationConfirmedSubject, emailBody); err != nil {
+				fmt.Printf("Failed to send email: %v\n", err)
+			}
+		}()
+
+	case models.Cancelled:
+		var updatedPassengers []*models.User
+		for _, p := range ride.Passengers {
+			if p.ID != passenger.ID {
+				updatedPassengers = append(updatedPassengers, p)
+			}
+		}
+		ride.Passengers = updatedPassengers
+
+		if _, err = a.rideRepository.Update(ride); err != nil {
+			fmt.Printf("Failed to update ride passengers: %v\n", err)
+		}
+
+		emailBody := fmt.Sprintf(
+			"User %s %s has cancelled their reservation on your ride on %s from %s to %s.",
+			passenger.FirstName, passenger.LastName, formattedDate, ride.StartingPoint, ride.Destination,
+		)
+
+		go func() {
+			if err = email.SendEmail(driver.Email, email.ReservationCancelledSubject, emailBody); err != nil {
 				fmt.Printf("Failed to send email: %v\n", err)
 			}
 		}()
