@@ -118,3 +118,14 @@ func (c *User) ChangePassword(ctx *gin.Context) {
 
 	c.returnJSON(ctx, nil, http.StatusOK)
 }
+
+// GetUserReservations GET /users/:id/reservations
+func (c *User) GetUserReservations(ctx *gin.Context) {
+	reservations, appErr := c.userApplication.GetUserReservations(ctx.Param("id"))
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, reservations, http.StatusOK)
+}

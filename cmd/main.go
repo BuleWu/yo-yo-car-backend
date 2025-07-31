@@ -46,6 +46,7 @@ func main() {
 
 	userApplication := applications.NewUserApplication(
 		repositories.NewUserRepository(conn),
+		repositories.NewReservationRepository(conn),
 	)
 
 	rideApplication := applications.NewRideApplication(
@@ -116,6 +117,7 @@ func main() {
 		apiRoutes.POST("/users/change-password", userController.ChangePassword)
 		apiRoutes.DELETE("/users/:id", userController.DeleteUser)
 		apiRoutes.POST("/users/:id/profile-picture", userController.UploadProfilePicture)
+		apiRoutes.GET("/users/:id/reservations", userController.GetUserReservations)
 
 		/*ride APIs*/
 		apiRoutes.GET("/rides", rideController.GetRides)
