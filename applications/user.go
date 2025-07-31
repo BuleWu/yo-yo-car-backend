@@ -16,15 +16,18 @@ const (
 
 func NewUserApplication(
 	userRepository repositories.UserRepository,
+	reservationRepository repositories.ReservationRepository,
 ) *User {
 	return &User{
-		userRepository: userRepository,
+		userRepository:        userRepository,
+		reservationRepository: reservationRepository,
 	}
 }
 
 type User struct {
 	Application
-	userRepository repositories.UserRepository
+	userRepository        repositories.UserRepository
+	reservationRepository repositories.ReservationRepository
 }
 
 func (a *User) GetUserById(userId string) (*models.User, Exception) {
@@ -156,4 +159,21 @@ func (a *User) ChangePassword(userID string, request *ChangePasswordRequest) Exc
 	}
 
 	return nil
+}
+
+func (a *User) GetUserReservations(userID string) ([]*models.Reservation, Exception) {
+	if userID == "" {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("user ID must be provided"))
+	}
+
+	if _, err := a.userRepository.GetById(userID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	reservations, err := a.reservationRepository.GetByUserId(userID)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return reservations, nil
 }

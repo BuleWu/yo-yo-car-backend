@@ -15,6 +15,7 @@ type ReservationRepository interface {
 	Persist(reservation *models.Reservation) (*models.Reservation, error)
 	GetById(id string) (*models.Reservation, error)
 	GetByRideId(rideID string) ([]*models.Reservation, error)
+	GetByUserId(userID string) ([]*models.Reservation, error)
 	GetAll() ([]*models.Reservation, error)
 	Update(reservation *models.Reservation) (*models.Reservation, error)
 	Delete(reservation *models.Reservation) error
@@ -45,6 +46,15 @@ func (repo *Reservation) GetByRideId(rideID string) ([]*models.Reservation, erro
 	db := repo.conn.GetConnection()
 	var reservations []*models.Reservation
 	if err := db.Where("ride_id = ?", rideID).Find(&reservations).Error; err != nil {
+		return nil, err
+	}
+	return reservations, nil
+}
+
+func (repo *Reservation) GetByUserId(userID string) ([]*models.Reservation, error) {
+	db := repo.conn.GetConnection()
+	var reservations []*models.Reservation
+	if err := db.Where("user_id = ?", userID).Find(&reservations).Error; err != nil {
 		return nil, err
 	}
 	return reservations, nil
