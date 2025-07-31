@@ -221,12 +221,13 @@ func (a *Ride) SearchRides(queries []repositories.SearchQuery) ([]*RideDTO, Exce
 }
 
 func (a *Ride) GetRideReservations(rideID string) ([]*models.Reservation, Exception) {
-	if rideID != "" {
-		if _, err := a.rideRepository.GetById(rideID); err != nil {
-			return nil, NewApplicationException(http.StatusNotFound, err)
-		}
+	if rideID == "" {
+		return nil, NewApplicationException(http.StatusBadRequest, errors.New("rideID cannot be empty"))
 	}
 
+	if _, err := a.rideRepository.GetById(rideID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
 	reservations, err := a.reservationRepository.GetByRideId(rideID)
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
