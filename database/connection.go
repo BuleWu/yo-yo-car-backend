@@ -22,6 +22,8 @@ func NewConnection(host, port, user, password, database string) (*Connection, er
 	db.AutoMigrate(&models.Ride{})
 	db.AutoMigrate(&models.Rating{})
 	db.AutoMigrate(&models.Reservation{})
+	/*db.AutoMigrate(&models.Chat{})*/ /*TODO: uncomment*/
+	db.AutoMigrate(&models.Message{})
 
 	fmt.Println("Successfully connected!")
 

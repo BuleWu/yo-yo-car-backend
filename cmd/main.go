@@ -24,6 +24,7 @@ var (
 	rideController        *controllers.Ride
 	ratingController      *controllers.Rating
 	reservationController *controllers.Reservation
+	messageController     *controllers.Message
 	conn                  *database.Connection
 )
 
@@ -67,6 +68,10 @@ func main() {
 		repositories.NewRideRepository(conn),
 	)
 
+	messageApplication := applications.NewMessageApplication(
+		repositories.NewMessageRepository(conn),
+	)
+
 	userController = controllers.NewUserController(
 		userApplication,
 	)
@@ -85,6 +90,10 @@ func main() {
 
 	reservationController = controllers.NewReservationController(
 		reservationApplication,
+	)
+
+	messageController = controllers.NewMessageController(
+		messageApplication,
 	)
 
 	r := gin.Default()
@@ -143,9 +152,17 @@ func main() {
 		apiRoutes.PUT("/reservations/:id", reservationController.UpdateReservation)
 		apiRoutes.DELETE("/reservations/:id", reservationController.DeleteReservation)
 
-		/*conversation APIs*/
+		/*chat APIs*/
+		apiRoutes.GET("/chats", chatController.GetUserChats)
+		apiRoutes.POST("/chats", chatController.CreateChat)
+		/*apiRoutes.PUT("/chats/:id", chatController.UpdateChat)*/
+		apiRoutes.DELETE("/chats/:id", chatController.DeleteChat)
+		apiRoutes.GET("/chats/:id/messages", chatController.GetChatMessages)
+		apiRoutes.POST("/chats/:id/messages", chatController.SendMessage)
 
 		/*message APIs*/
+		apiRoutes.PUT("/messages/:id", messageController.UpdateMessage)
+
 	}
 
 	ctx := context.Background()
