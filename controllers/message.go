@@ -17,7 +17,7 @@ func NewMessageController(
 
 type Message struct {
 	Controller
-	MessageApplication *applications.Message
+	messageApplication *applications.Message
 }
 
 func (c *Message) UpdateMessage(ctx *gin.Context) {
@@ -26,7 +26,7 @@ func (c *Message) UpdateMessage(ctx *gin.Context) {
 		c.returnJSON(ctx, utils.NewHttpError(err.Error()), http.StatusInternalServerError)
 		return
 	}
-	
+
 	request.MessageID = ctx.Param("id")
 
 	message, appErr := c.messageApplication.UpdateMessage(&request)

@@ -12,12 +12,24 @@ func NewMessageRepository(db *database.Connection) MessageRepository {
 }
 
 type MessageRepository interface {
+	Persist(message *models.Message) (*models.Message, error)
 	GetById(ID string) (*models.Message, error)
 	Update(message *models.Message) (*models.Message, error)
+	GetMessagesByChat(chatID string, limit, offset int) ([]models.Message, error)
 }
 
 type Message struct {
 	conn *database.Connection
+}
+
+func (repo *Message) Persist(record *models.Message) (*models.Message, error) {
+	db := repo.conn.GetConnection()
+
+	if err := db.Create(&record).Error; err != nil {
+		return nil, err
+	}
+
+	return record, nil
 }
 
 func (repo *Message) GetById(ID string) (*models.Message, error) {
@@ -42,4 +54,19 @@ func (repo *Message) Update(record *models.Message) (*models.Message, error) {
 	}
 
 	return record, nil
+}
+
+func (repo *Message) GetMessagesByChat(chatID string, limit, offset int) ([]models.Message, error) {
+	db := repo.conn.GetConnection()
+	var messages []models.Message
+
+	if err := db.Where("chat_id = ?", chatID).
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&messages).Error; err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }

@@ -20,7 +20,7 @@ type Message struct {
 }
 
 type UpdateMessageRequest struct {
-	MessageId string `json:"-"`
+	MessageID string `json:"-"`
 	Read      bool   `json:"read"`
 }
 
@@ -30,9 +30,7 @@ func (a *Message) UpdateMessage(request *UpdateMessageRequest) (*models.Message,
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
 
-	if read != nil {
-		message.Read = request.Read
-	}
+	message.Read = request.Read
 
 	message, err = a.messageRepository.Update(message)
 	if err != nil {
