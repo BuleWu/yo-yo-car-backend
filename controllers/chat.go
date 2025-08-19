@@ -82,7 +82,7 @@ func (c *Chat) GetChatMessages(ctx *gin.Context) {
 }
 
 // SendMessage POST /chats/:chatId/messages
-func (c *Chat) SendMessage(ctx *gin.Context) {
+/*func (c *Chat) SendMessage(ctx *gin.Context) {
 	chatID := ctx.Param("chatId")
 
 	var request applications.SendMessageRequest
@@ -99,4 +99,4 @@ func (c *Chat) SendMessage(ctx *gin.Context) {
 	}
 
 	c.returnJSON(ctx, message, http.StatusCreated)
-}
+}*/

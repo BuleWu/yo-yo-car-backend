@@ -71,6 +71,10 @@ func (a *Chat) GetChatMessages(chatID string, limit, offset int) ([]models.Messa
 }
 
 func (a *Chat) DeleteChat(chatID string) Exception {
+	if _, err := a.chatRepository.GetById(chatID); err != nil {
+		return NewApplicationException(http.StatusNotFound, fmt.Errorf("chat with id %s doesn't exist", chatID))
+	}
+
 	if err := a.chatRepository.Delete(chatID); err != nil {
 		return NewApplicationException(http.StatusInternalServerError, err)
 	}
