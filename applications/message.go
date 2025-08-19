@@ -34,7 +34,7 @@ func (a *Message) UpdateMessage(request *UpdateMessageRequest) (*models.Message,
 
 	message, err = a.messageRepository.Update(message)
 	if err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, err)
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
 
 	return message, nil
