@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
+	"zavrsni/yo-yo-car/pusher"
 	"zavrsni/yo-yo-car/repositories"
 )
 
@@ -107,9 +108,9 @@ func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Except
 	}
 
 	data := map[string]string{"message": message.Content}
-	err = pusherClient.Trigger("chat", "send-message", data)
+	err = pusher.Client.Trigger("chat-"+request.ChatID, "send-message", data)
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to deliver message: %v", err))
 	}
 
 	return message, nil
