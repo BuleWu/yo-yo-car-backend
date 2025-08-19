@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"net/http"
 	"zavrsni/yo-yo-car/models"
+	"zavrsni/yo-yo-car/pusher"
 	"zavrsni/yo-yo-car/repositories"
 )
 
-func NewChatApplication(chatRepository repositories.ChatRepository, userRepository repositories.UserRepository, messageRepository repositories.MessageRepository) *Chat {
+func NewChatApplication(chatRepository repositories.ChatRepository, userRepository repositories.UserRepository, messageRepository repositories.MessageRepository, pusherService *pusher.PusherService) *Chat {
 	return &Chat{
 		chatRepository:    chatRepository,
 		userRepository:    userRepository,
 		messageRepository: messageRepository,
+		pusherService:     pusherService,
 	}
 }
 
@@ -20,6 +22,7 @@ type Chat struct {
 	chatRepository    repositories.ChatRepository
 	userRepository    repositories.UserRepository
 	messageRepository repositories.MessageRepository
+	pusherService     *pusher.PusherService
 }
 
 type CreateChatRequest struct {
@@ -86,4 +89,37 @@ type SendMessageRequest struct {
 	Content    string `json:"content"`
 	SenderID   string `json:"sender_id"`
 	ReceiverID string `json:"receiver_id"`
+}
+
+func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Exception) {
+	if _, err := a.chatRepository.GetById(request.ChatID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("chat with id %s doesn't exist", request.ChatID))
+	}
+
+	if _, err := a.userRepository.GetById(request.SenderID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s doesn't exist", request.SenderID))
+	}
+
+	if _, err := a.userRepository.GetById(request.ReceiverID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s doesn't exist", request.ReceiverID))
+	}
+
+	message, err := a.messageRepository.Persist(models.NewMessage(request.Content, request.ChatID, request.SenderID, request.ReceiverID, false))
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to create message"))
+	}
+
+	data := map[string]interface{}{
+		"message_id":  message.ID,
+		"message":     message.Content,
+		"sender_id":   message.SenderID,
+		"receiver_id": message.ReceiverID,
+		"timestamp":   message.CreatedAt,
+	}
+	err = a.pusherService.Client.Trigger("chat-"+request.ChatID, "send-message", data)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("pusher trigger failed for chatID=%s, senderID=%s, receiverID=%s: %v", request.ChatID, request.SenderID, request.ReceiverID, err))
+	}
+
+	return message, nil
 }
