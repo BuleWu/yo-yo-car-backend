@@ -8,11 +8,12 @@ import (
 	"zavrsni/yo-yo-car/repositories"
 )
 
-func NewChatApplication(chatRepository repositories.ChatRepository, userRepository repositories.UserRepository, messageRepository repositories.MessageRepository) *Chat {
+func NewChatApplication(chatRepository repositories.ChatRepository, userRepository repositories.UserRepository, messageRepository repositories.MessageRepository, pusherService *pusher.PusherService) *Chat {
 	return &Chat{
 		chatRepository:    chatRepository,
 		userRepository:    userRepository,
 		messageRepository: messageRepository,
+		pusherService:     pusherService,
 	}
 }
 
@@ -21,6 +22,7 @@ type Chat struct {
 	chatRepository    repositories.ChatRepository
 	userRepository    repositories.UserRepository
 	messageRepository repositories.MessageRepository
+	pusherService     *pusher.PusherService
 }
 
 type CreateChatRequest struct {
@@ -107,10 +109,16 @@ func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Except
 		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to create message"))
 	}
 
-	data := map[string]string{"message": message.Content}
-	err = pusher.Client.Trigger("chat-"+request.ChatID, "send-message", data)
+	data := map[string]interface{}{
+		"message_id":  message.ID,
+		"message":     message.Content,
+		"sender_id":   message.SenderID,
+		"receiver_id": message.ReceiverID,
+		"timestamp":   message.CreatedAt,
+	}
+	err = a.pusherService.Client.Trigger("chat-"+request.ChatID, "send-message", data)
 	if err != nil {
-		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to deliver message: %v", err))
+		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("pusher trigger failed for chatID=%s, senderID=%s, receiverID=%s: %v", request.ChatID, request.SenderID, request.ReceiverID, err))
 	}
 
 	return message, nil

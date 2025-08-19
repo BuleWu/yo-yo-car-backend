@@ -77,6 +77,7 @@ func main() {
 		repositories.NewChatRepository(conn),
 		repositories.NewUserRepository(conn),
 		repositories.NewMessageRepository(conn),
+		pusher.NewPusherService(runtimebag.GetEnvString("PUSHER_APP_ID", ""), runtimebag.GetEnvString("PUSHER_KEY", ""), runtimebag.GetEnvString("PUSHER_SECRET", ""), runtimebag.GetEnvString("PUSHER_CLUSTER", "eu"), true),
 	)
 
 	messageApplication := applications.NewMessageApplication(
@@ -196,9 +197,6 @@ func main() {
 	if err = email.InitEmail(); err != nil {
 		log.Println("Error in email: ", err)
 	}
-
-	// pusher init
-	pusher.InitPusher(runtimebag.GetEnvString("PUSHER_APP_ID", ""), runtimebag.GetEnvString("PUSHER_KEY", ""), runtimebag.GetEnvString("PUSHER_SECRET", ""), runtimebag.GetEnvString("PUSHER_CLUSTER", "eu"), true)
 
 	if err = r.Run("localhost:8080"); err != nil {
 		log.Fatalf("error while trying to run server: %v\n", err)
