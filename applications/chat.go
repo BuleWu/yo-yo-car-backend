@@ -87,3 +87,30 @@ type SendMessageRequest struct {
 	SenderID   string `json:"sender_id"`
 	ReceiverID string `json:"receiver_id"`
 }
+
+func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Exception) {
+	if _, err := a.chatRepository.GetById(request.ChatID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("chat with id %s doesn't exist", request.ChatID))
+	}
+
+	if _, err := a.userRepository.GetById(request.SenderID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s doesn't exist", request.SenderID))
+	}
+
+	if _, err := a.userRepository.GetById(request.ReceiverID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s doesn't exist", request.ReceiverID))
+	}
+
+	message, err := a.messageRepository.Persist(models.NewMessage(request.Content, request.ChatID, request.SenderID, request.ReceiverID, false))
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to create message"))
+	}
+
+	data := map[string]string{"message": message.Content}
+	err = pusherClient.Trigger("chat", "send-message", data)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return message, nil
+}

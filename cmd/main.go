@@ -13,6 +13,7 @@ import (
 	"zavrsni/yo-yo-car/email"
 	"zavrsni/yo-yo-car/firebase"
 	"zavrsni/yo-yo-car/middleware"
+	"zavrsni/yo-yo-car/pusher"
 	"zavrsni/yo-yo-car/repositories"
 	"zavrsni/yo-yo-car/runtimebag"
 	"zavrsni/yo-yo-car/shared/constants"
@@ -34,6 +35,8 @@ func main() {
 	if err != nil {
 		log.Println("Error loading .env file...")
 	}
+
+	// database connection setup
 	conn, err = database.NewConnection(
 		runtimebag.GetEnvString(constants.DatabaseHost, ""),
 		runtimebag.GetEnvString(constants.DatabasePort, ""),
@@ -46,6 +49,7 @@ func main() {
 		panic(err)
 	}
 
+	// application layer init
 	userApplication := applications.NewUserApplication(
 		repositories.NewUserRepository(conn),
 		repositories.NewReservationRepository(conn),
@@ -79,6 +83,7 @@ func main() {
 		repositories.NewMessageRepository(conn),
 	)
 
+	// controller init
 	userController = controllers.NewUserController(
 		userApplication,
 	)
@@ -107,6 +112,7 @@ func main() {
 		messageApplication,
 	)
 
+	// route setup
 	r := gin.Default()
 
 	config := cors.Config{
@@ -169,7 +175,7 @@ func main() {
 		/*apiRoutes.PUT("/chats/:id", chatController.UpdateChat)*/
 		apiRoutes.DELETE("/chats/:id", chatController.DeleteChat)
 		apiRoutes.GET("/chats/:id/messages", chatController.GetChatMessages)
-		/*apiRoutes.POST("/chats/:id/messages", chatController.SendMessage)*/
+		apiRoutes.POST("/chats/:id/messages", chatController.SendMessage)
 
 		/*message APIs*/
 		apiRoutes.PUT("/messages/:id", messageController.UpdateMessage)
@@ -178,6 +184,7 @@ func main() {
 
 	ctx := context.Background()
 
+	// firebase init
 	credentialsFile := runtimebag.GetEnvString("GOOGLE_APPLICATION_CREDENTIALS", "")
 	projectID := runtimebag.GetEnvString("FIREBASE_PROJECT_ID", "")
 	storageBucket := runtimebag.GetEnvString("FIREBASE_STORAGE_BUCKET", "")
@@ -185,9 +192,13 @@ func main() {
 	firebase.InitFirebase(ctx, credentialsFile, projectID, storageBucket)
 	defer firebase.Client.Close()
 
+	// mailtrap init
 	if err = email.InitEmail(); err != nil {
 		log.Println("Error in email: ", err)
 	}
+
+	// pusher init
+	pusher.InitPusher(runtimebag.GetEnvString("PUSHER_APP_ID", ""), runtimebag.GetEnvString("PUSHER_KEY", ""), runtimebag.GetEnvString("PUSHER_SECRET", ""), runtimebag.GetEnvString("PUSHER_CLUSTER", "eu"), true)
 
 	if err = r.Run("localhost:8080"); err != nil {
 		log.Fatalf("error while trying to run server: %v\n", err)
