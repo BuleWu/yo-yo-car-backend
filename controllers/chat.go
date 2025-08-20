@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +24,6 @@ type Chat struct {
 // GetUserChats GET /chats?userId=:id
 func (c *Chat) GetUserChats(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
-	fmt.Println("User id from bearer: ", userID) // TODO: remove after debug
 
 	chats, appErr := c.chatApplication.GetUserChats(userID)
 	if appErr != nil {

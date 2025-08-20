@@ -78,6 +78,7 @@ func main() {
 		repositories.NewUserRepository(conn),
 		repositories.NewMessageRepository(conn),
 		pusher.NewPusherService(runtimebag.GetEnvString("PUSHER_APP_ID", ""), runtimebag.GetEnvString("PUSHER_KEY", ""), runtimebag.GetEnvString("PUSHER_SECRET", ""), runtimebag.GetEnvString("PUSHER_CLUSTER", "eu"), true),
+		repositories.NewRideRepository(conn),
 	)
 
 	messageApplication := applications.NewMessageApplication(

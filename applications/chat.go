@@ -8,12 +8,13 @@ import (
 	"zavrsni/yo-yo-car/repositories"
 )
 
-func NewChatApplication(chatRepository repositories.ChatRepository, userRepository repositories.UserRepository, messageRepository repositories.MessageRepository, pusherService *pusher.PusherService) *Chat {
+func NewChatApplication(chatRepository repositories.ChatRepository, userRepository repositories.UserRepository, messageRepository repositories.MessageRepository, pusherService *pusher.PusherService, rideRepository repositories.RideRepository) *Chat {
 	return &Chat{
 		chatRepository:    chatRepository,
 		userRepository:    userRepository,
 		messageRepository: messageRepository,
 		pusherService:     pusherService,
+		rideRepository:    rideRepository,
 	}
 }
 
@@ -23,11 +24,13 @@ type Chat struct {
 	userRepository    repositories.UserRepository
 	messageRepository repositories.MessageRepository
 	pusherService     *pusher.PusherService
+	rideRepository    repositories.RideRepository
 }
 
 type CreateChatRequest struct {
 	User1ID string `json:"user_1_id"`
 	User2ID string `json:"user_2_id"`
+	RideID  string `json:"ride_id"`
 }
 
 func (a *Chat) CreateChat(request *CreateChatRequest) (*models.Chat, Exception) {
@@ -41,7 +44,16 @@ func (a *Chat) CreateChat(request *CreateChatRequest) (*models.Chat, Exception) 
 		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s not found", request.User2ID))
 	}
 
-	chat, err := a.chatRepository.Persist(models.NewChat(request.User1ID, request.User2ID))
+	if _, err = a.rideRepository.GetById(request.RideID); err != nil {
+		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with id %s not found", request.RideID))
+	}
+
+	existingChat, _ := a.chatRepository.GetByUsersAndRide(request.User1ID, request.User2ID, request.RideID)
+	if existingChat != nil {
+		return existingChat, nil
+	}
+
+	chat, err := a.chatRepository.Persist(models.NewChat(request.User1ID, request.User2ID, request.RideID))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}

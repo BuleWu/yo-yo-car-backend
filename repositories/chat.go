@@ -19,6 +19,7 @@ type ChatRepository interface {
 	Delete(ID string) error
 	GetUserChats(userID string) ([]models.Chat, error)
 	GetChatBetweenUsers(user1ID, user2ID string) (*models.Chat, error)
+	GetByUsersAndRide(user1ID, user2ID, rideID string) (*models.Chat, error)
 }
 
 // Chat repository implementation
@@ -81,5 +82,17 @@ func (repo *Chat) GetChatBetweenUsers(user1ID, user2ID string) (*models.Chat, er
 		user1ID, user2ID, user2ID, user1ID).First(&chat).Error; err != nil {
 		return nil, err
 	}
+	return &chat, nil
+}
+
+func (repo *Chat) GetByUsersAndRide(user1ID, user2ID, rideID string) (*models.Chat, error) {
+	db := repo.conn.GetConnection()
+	var chat models.Chat
+
+	if err := db.Where("(user1_id = ? AND user2_id = ? OR user1_id = ? AND user2_id = ?) AND ride_id = ?",
+		user1ID, user2ID, user2ID, user1ID, rideID).First(&chat).Error; err != nil {
+		return nil, err
+	}
+
 	return &chat, nil
 }
