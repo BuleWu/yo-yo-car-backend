@@ -173,6 +173,7 @@ func main() {
 
 		/*chat APIs*/
 		apiRoutes.GET("/chats", chatController.GetUserChats)
+		apiRoutes.GET("/chats/:id", chatController.GetChat)
 		apiRoutes.POST("/chats", chatController.CreateChat)
 		/*apiRoutes.PUT("/chats/:id", chatController.UpdateChat)*/
 		apiRoutes.DELETE("/chats/:id", chatController.DeleteChat)

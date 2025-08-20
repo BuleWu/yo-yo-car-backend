@@ -61,7 +61,7 @@ func (repo *Message) GetMessagesByChat(chatID string, limit, offset int) ([]mode
 	var messages []models.Message
 
 	if err := db.Where("chat_id = ?", chatID).
-		Order("created_at DESC").
+		Order("created_at ASC").
 		Limit(limit).
 		Offset(offset).
 		Find(&messages).Error; err != nil {

@@ -77,6 +77,16 @@ func (a *Chat) GetUserChats(userID string) ([]models.Chat, Exception) {
 	return chats, nil
 }
 
+func (a *Chat) GetChat(id string) (*models.Chat, Exception) {
+	chat, err := a.chatRepository.GetById(id)
+
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return chat, nil
+}
+
 func (a *Chat) GetChatMessages(chatID string, limit, offset int) ([]models.Message, Exception) {
 	messages, err := a.messageRepository.GetMessagesByChat(chatID, limit, offset)
 	if err != nil {

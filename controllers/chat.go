@@ -34,6 +34,18 @@ func (c *Chat) GetUserChats(ctx *gin.Context) {
 	c.returnJSON(ctx, chats, http.StatusOK)
 }
 
+// GetChat GET /chats/:id
+func (c *Chat) GetChat(ctx *gin.Context) {
+	chat, appErr := c.chatApplication.GetChat(ctx.Param("id"))
+
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, chat, http.StatusOK)
+}
+
 // CreateChat POST /chats
 func (c *Chat) CreateChat(ctx *gin.Context) {
 	var request applications.CreateChatRequest
