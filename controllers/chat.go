@@ -77,7 +77,7 @@ func (c *Chat) DeleteChat(ctx *gin.Context) {
 
 // GetChatMessages GET /chats/:chatId/messages
 func (c *Chat) GetChatMessages(ctx *gin.Context) {
-	chatID := ctx.Param("chatId")
+	chatID := ctx.Param("id")
 
 	limit := utils.GetQueryInt(ctx, "limit", 20)
 	offset := utils.GetQueryInt(ctx, "offset", 0)
