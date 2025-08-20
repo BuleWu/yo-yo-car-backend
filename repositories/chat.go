@@ -40,7 +40,7 @@ func (repo *Chat) Persist(chat *models.Chat) (*models.Chat, error) {
 func (repo *Chat) GetById(ID string) (*models.Chat, error) {
 	db := repo.conn.GetConnection()
 	var chat models.Chat
-	if err := db.First(&chat, "id = ?", ID).Error; err != nil {
+	if err := db.Preload("User1").Preload("User2").First(&chat, "id = ?", ID).Error; err != nil {
 		return nil, err
 	}
 	return &chat, nil
