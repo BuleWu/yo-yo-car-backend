@@ -114,7 +114,8 @@ type SendMessageRequest struct {
 }
 
 func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Exception) {
-	if _, err := a.chatRepository.GetById(request.ChatID); err != nil {
+	chat, err := a.chatRepository.GetById(request.ChatID)
+	if err != nil {
 		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("chat with id %s doesn't exist", request.ChatID))
 	}
 
@@ -129,6 +130,13 @@ func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Except
 	message, err := a.messageRepository.Persist(models.NewMessage(request.Content, request.ChatID, request.SenderID, request.ReceiverID, false))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to create message"))
+	}
+
+	chat.LastMessageAt = message.CreatedAt
+
+	_, err = a.chatRepository.Update(chat)
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, fmt.Errorf("failed to update chat with id %s", chat.ID))
 	}
 
 	data := map[string]interface{}{

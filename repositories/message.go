@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"zavrsni/yo-yo-car/database"
 	"zavrsni/yo-yo-car/models"
 )
@@ -68,8 +67,6 @@ func (repo *Message) GetMessagesByChat(chatID string, limit, offset int) ([]mode
 		Find(&messages).Error; err != nil {
 		return nil, err
 	}
-
-	fmt.Println("Chat id: ", chatID)
 
 	return messages, nil
 }

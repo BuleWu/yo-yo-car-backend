@@ -68,7 +68,7 @@ func (repo *Chat) Delete(ID string) error {
 func (repo *Chat) GetUserChats(userID string) ([]models.Chat, error) {
 	db := repo.conn.GetConnection()
 	var chats []models.Chat
-	if err := db.Where("user1_id = ? OR user2_id = ?", userID, userID).Find(&chats).Error; err != nil {
+	if err := db.Preload("Ride").Preload("User1").Preload("User2").Where("user1_id = ? OR user2_id = ?", userID, userID).Find(&chats).Error; err != nil {
 		return nil, err
 	}
 	return chats, nil

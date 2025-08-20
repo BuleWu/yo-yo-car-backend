@@ -1,10 +1,13 @@
 package models
 
+import "time"
+
 func NewChat(user1Id string, user2Id string, rideId string) *Chat {
 	return &Chat{
-		User1ID: user1Id,
-		User2ID: user2Id,
-		RideID:  rideId,
+		User1ID:       user1Id,
+		User2ID:       user2Id,
+		RideID:        rideId,
+		LastMessageAt: time.Time{},
 	}
 }
 
@@ -18,4 +21,7 @@ type Chat struct {
 	User2 *User `json:"user_2" gorm:"foreignKey:User2ID"`
 
 	RideID string `json:"ride_id"`
+	Ride   *Ride  `json:"ride" gorm:"foreignKey:RideID"`
+
+	LastMessageAt time.Time `json:"last_message_at"`
 }
