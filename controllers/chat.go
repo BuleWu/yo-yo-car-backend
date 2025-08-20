@@ -42,13 +42,13 @@ func (c *Chat) CreateChat(ctx *gin.Context) {
 		return
 	}
 
-	chat, appErr := c.chatApplication.CreateChat(&request)
+	chat, status, appErr := c.chatApplication.CreateChat(&request)
 	if appErr != nil {
-		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		c.returnJSON(ctx, appErr, status)
 		return
 	}
 
-	c.returnJSON(ctx, chat, http.StatusCreated)
+	c.returnJSON(ctx, chat, status)
 }
 
 // DeleteChat DELETE /chats/:id

@@ -33,32 +33,32 @@ type CreateChatRequest struct {
 	RideID  string `json:"ride_id"`
 }
 
-func (a *Chat) CreateChat(request *CreateChatRequest) (*models.Chat, Exception) {
+func (a *Chat) CreateChat(request *CreateChatRequest) (*models.Chat, int, error) {
 	var err error
 
 	if _, err = a.userRepository.GetById(request.User1ID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s not found", request.User1ID))
+		return nil, http.StatusNotFound, fmt.Errorf("user with id %s not found", request.User1ID)
 	}
 
 	if _, err = a.userRepository.GetById(request.User2ID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s not found", request.User2ID))
+		return nil, http.StatusNotFound, fmt.Errorf("user with id %s not found", request.User2ID)
 	}
 
 	if _, err = a.rideRepository.GetById(request.RideID); err != nil {
-		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("ride with id %s not found", request.RideID))
+		return nil, http.StatusNotFound, fmt.Errorf("ride with id %s not found", request.RideID)
 	}
 
-	existingChat, _ := a.chatRepository.GetByUsersAndRide(request.User1ID, request.User2ID, request.RideID)
-	if existingChat != nil {
-		return existingChat, nil
+	existingChat, err := a.chatRepository.GetByUsersAndRide(request.User1ID, request.User2ID, request.RideID)
+	if err == nil && existingChat != nil {
+		return existingChat, http.StatusOK, nil
 	}
 
 	chat, err := a.chatRepository.Persist(models.NewChat(request.User1ID, request.User2ID, request.RideID))
 	if err != nil {
-		return nil, NewApplicationException(http.StatusInternalServerError, err)
+		return nil, http.StatusInternalServerError, err
 	}
 
-	return chat, nil
+	return chat, http.StatusCreated, nil
 }
 
 func (a *Chat) GetUserChats(userID string) ([]models.Chat, Exception) {
