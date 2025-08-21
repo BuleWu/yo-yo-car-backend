@@ -136,6 +136,9 @@ func main() {
 	}
 
 	apiRoutes := r.Group("/api")
+	apiRoutes.GET("/reservations/:id/confirm", reservationController.ConfirmReservation)
+	apiRoutes.GET("/reservations/:id/decline", reservationController.DeclineReservation)
+
 	apiRoutes.Use(middleware.AuthenticationMiddleware())
 	{
 		/*user APIs*/
@@ -148,7 +151,8 @@ func main() {
 		apiRoutes.GET("/users/:id/reservations", userController.GetUserReservations)
 
 		/*ride APIs*/
-		apiRoutes.GET("/rides", rideController.GetRides)
+		apiRoutes.GET("/rides", rideController.GetUserRides)
+		/*apiRoutes.GET("/rides", rideController.GetRides)*/
 		apiRoutes.GET("/rides/:id", rideController.GetRideById)
 		apiRoutes.POST("/rides", rideController.CreateRide)
 		apiRoutes.PUT("/rides/:id", rideController.UpdateRide)
