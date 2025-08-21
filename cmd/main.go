@@ -151,8 +151,8 @@ func main() {
 		apiRoutes.GET("/users/:id/reservations", userController.GetUserReservations)
 
 		/*ride APIs*/
-		apiRoutes.GET("/rides", rideController.GetUserRides)
-		/*apiRoutes.GET("/rides", rideController.GetRides)*/
+		apiRoutes.GET("/rides", rideController.GetRides)
+		apiRoutes.GET("/user/:userId/rides", rideController.GetUserRides)
 		apiRoutes.GET("/rides/:id", rideController.GetRideById)
 		apiRoutes.POST("/rides", rideController.CreateRide)
 		apiRoutes.PUT("/rides/:id", rideController.UpdateRide)
