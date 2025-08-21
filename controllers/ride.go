@@ -32,6 +32,16 @@ func (c *Ride) GetRides(ctx *gin.Context) {
 	c.returnJSON(ctx, data, http.StatusOK)
 }
 
+func (c *Ride) GetUserRides(ctx *gin.Context) {
+	rides, appErr := c.rideApplication.GetUserRides(ctx.Param("userId"))
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, rides, http.StatusOK)
+}
+
 func (c *Ride) GetRideById(ctx *gin.Context) {
 	id := ctx.Param("id")
 

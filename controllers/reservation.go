@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/core/utils"
+	"zavrsni/yo-yo-car/models"
+	"zavrsni/yo-yo-car/runtimebag"
 )
 
 func NewReservationController(reservationApplication *applications.Reservation) *Reservation {
@@ -91,4 +94,56 @@ func (c *Reservation) DeleteReservation(ctx *gin.Context) {
 	}
 
 	c.returnJSON(ctx, nil, http.StatusNoContent)
+}
+
+func (c *Reservation) ConfirmReservation(ctx *gin.Context) {
+	confirmationToken := ctx.Query("token")
+	if confirmationToken == "" {
+		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+		failedRedirect := fmt.Sprintf("%s/reservation-confirm?status=invalid", frontendUrl)
+		ctx.Redirect(http.StatusTemporaryRedirect, failedRedirect)
+		return
+	}
+
+	var request applications.UpdateReservationRequest
+	request.ReservationID = ctx.Param("id")
+	request.Status = models.Confirmed
+	request.ConfirmationToken = confirmationToken
+
+	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+
+	if _, appErr := c.reservationApplication.UpdateReservation(&request); appErr != nil {
+		failedRedirect := fmt.Sprintf("%s/reservation-confirm?status=failed", frontendUrl)
+		ctx.Redirect(http.StatusTemporaryRedirect, failedRedirect)
+		return
+	}
+
+	successRedirect := fmt.Sprintf("%s/reservation-confirm?status=success", frontendUrl)
+	ctx.Redirect(http.StatusTemporaryRedirect, successRedirect)
+}
+
+func (c *Reservation) DeclineReservation(ctx *gin.Context) {
+	confirmationToken := ctx.Query("token")
+	if confirmationToken == "" {
+		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+		failedRedirect := fmt.Sprintf("%s/reservation-decline?status=invalid", frontendUrl)
+		ctx.Redirect(http.StatusTemporaryRedirect, failedRedirect)
+		return
+	}
+
+	var request applications.UpdateReservationRequest
+	request.ReservationID = ctx.Param("id")
+	request.Status = models.Cancelled
+	request.ConfirmationToken = confirmationToken
+
+	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+
+	if _, appErr := c.reservationApplication.UpdateReservation(&request); appErr != nil {
+		failedRedirect := fmt.Sprintf("%s/reservation-decline?status=failed", frontendUrl)
+		ctx.Redirect(http.StatusTemporaryRedirect, failedRedirect)
+		return
+	}
+
+	successRedirect := fmt.Sprintf("%s/reservation-decline?status=success", frontendUrl)
+	ctx.Redirect(http.StatusTemporaryRedirect, successRedirect)
 }

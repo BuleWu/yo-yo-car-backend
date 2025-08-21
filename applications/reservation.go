@@ -2,6 +2,7 @@ package applications
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"net/http"
 	"zavrsni/yo-yo-car/email"
 	"zavrsni/yo-yo-car/models"
@@ -56,7 +57,22 @@ func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*mod
 	}
 
 	passenger, _ := a.userRepository.GetById(request.UserID)
-	emailBody := fmt.Sprintf("You received a new reservation from %s %s. Click here to confirm.", passenger.FirstName, passenger.LastName)
+
+	confirmationToken := uuid.New().String()
+
+	confirmationLink := fmt.Sprintf("http://localhost:8080/api/reservations/%s/confirm?token=%s", reservation.ID, confirmationToken)
+	emailBody := fmt.Sprintf(`
+	You received a new reservation from %s %s.
+	
+	Ride Details:
+	- From: %s
+	- To: %s
+	- Date: %s
+	
+	Click here to confirm the reservation: %s
+	
+	Or decline: http://localhost:8080/api/reservations/%s/decline?token=%s
+	`, passenger.FirstName, passenger.LastName, ride.StartingPoint, ride.Destination, ride.Date.Format("2006-01-02 15:04"), confirmationLink, reservation.ID, confirmationToken)
 
 	go func() {
 		if err = email.SendEmail(driver.Email, email.ReservationMadeSubject, emailBody); err != nil {
@@ -84,14 +100,19 @@ func (a *Reservation) GetAllReservations() ([]*models.Reservation, Exception) {
 }
 
 type UpdateReservationRequest struct {
-	ReservationID string                   `json:"-"`
-	Status        models.ReservationStatus `json:"status"`
+	ReservationID     string                   `json:"-"`
+	Status            models.ReservationStatus `json:"status"`
+	ConfirmationToken string                   `json:"-"`
 }
 
 func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*models.Reservation, Exception) {
 	reservation, err := a.reservationRepository.GetById(request.ReservationID)
 	if err != nil {
 		return nil, NewApplicationException(http.StatusNotFound, err)
+	}
+
+	if reservation.Status == models.Completed && request.Status == models.Cancelled {
+		return nil, NewApplicationException(http.StatusBadRequest, fmt.Errorf("cannot cancel a reservation on a ride which is already completed"))
 	}
 
 	if isValidReservationStatus(request.Status) {

@@ -61,6 +61,22 @@ func (a *Ride) GetRides() ([]*RideDTO, Exception) {
 	return rideDtos, nil
 }
 
+func (a *Ride) GetUserRides(userId string) ([]*RideDTO, Exception) {
+	rides, err := a.rideRepository.GetByUserId(userId)
+
+	if err != nil {
+		return nil, NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	var rideDtos []*RideDTO
+
+	for _, ride := range rides {
+		rideDtos = append(rideDtos, ToRideDTO(ride))
+	}
+
+	return rideDtos, nil
+}
+
 func (a *Ride) GetRideById(ID string) (*RideDTO, Exception) {
 	ride, err := a.rideRepository.GetById(ID)
 

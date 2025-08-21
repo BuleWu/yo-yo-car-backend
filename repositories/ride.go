@@ -16,6 +16,7 @@ func NewRideRepository(db *database.Connection) RideRepository {
 type RideRepository interface {
 	Get() ([]*models.Ride, error)
 	GetById(ID string) (*models.Ride, error)
+	GetByUserId(userId string) ([]*models.Ride, error)
 	Persist(ride *models.Ride) (*models.Ride, error)
 	Update(ride *models.Ride) (*models.Ride, error)
 	Delete(ride *models.Ride) error
@@ -48,6 +49,17 @@ func (repo *Ride) GetById(ID string) (*models.Ride, error) {
 	return &record, nil
 }
 
+func (repo *Ride) GetByUserId(userId string) ([]*models.Ride, error) {
+	db := repo.conn.GetConnection()
+	var record []*models.Ride
+
+	if err := db.Where("driver_id = ?", userId).Find(&record).Error; err != nil {
+		return nil, err
+	}
+
+	return record, nil
+}
+
 func (repo *Ride) Persist(ride *models.Ride) (*models.Ride, error) {
 	db := repo.conn.GetConnection()
 	if err := db.Create(ride).Error; err != nil {
@@ -67,7 +79,7 @@ func (repo *Ride) Update(record *models.Ride) (*models.Ride, error) {
 	if err := db.Model(record).Association("Passengers").Replace(record.Passengers); err != nil {
 		return nil, err
 	}
-	
+
 	if err := db.Save(record).Error; err != nil {
 		return nil, err
 	}

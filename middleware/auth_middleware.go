@@ -33,6 +33,7 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("user_id", claims["user_id"])
+		c.Set("token", tokenString)
 		c.Next()
 	}
 }
