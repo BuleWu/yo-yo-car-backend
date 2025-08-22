@@ -53,7 +53,10 @@ func (repo *Ride) GetByUserId(userId string) ([]*models.Ride, error) {
 	db := repo.conn.GetConnection()
 	var record []*models.Ride
 
-	if err := db.Where("driver_id = ?", userId).Find(&record).Error; err != nil {
+	if err := db.
+		Where("driver_id = ?", userId).
+		Order("date DESC").
+		Find(&record).Error; err != nil {
 		return nil, err
 	}
 
@@ -126,8 +129,6 @@ func (repo *Ride) Search(query []SearchQuery) ([]*models.Ride, error) {
 		condition := fmt.Sprintf("%s %s ?", columnName, q.Operator)
 		db = db.Where(condition, q.Value)
 	}
-
-	db = db.Where("finished = ?", false)
 
 	if err := db.Preload("Driver").Preload("Passengers").Find(&rides).Error; err != nil {
 		return nil, err

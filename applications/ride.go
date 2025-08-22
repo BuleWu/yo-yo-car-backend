@@ -3,12 +3,16 @@ package applications
 import (
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 	"zavrsni/yo-yo-car/core/utils"
+	"zavrsni/yo-yo-car/email"
 	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
+	"zavrsni/yo-yo-car/runtimebag"
 )
 
 type RideDTO struct {
@@ -123,17 +127,18 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*RideDTO, Exception) {
 }
 
 type UpdateRideRequest struct {
-	RideID        string    `json:"-"`
-	StartingPoint string    `json:"starting_point"`
-	Destination   string    `json:"destination"`
-	StartTime     time.Time `json:"start_time"`
-	EndTime       time.Time `json:"end_time"`
-	Price         float64   `json:"price"`
-	DriverID      string    `json:"driver_id"`
-	Finished      bool      `json:"finished"`
-	PassengerIDs  []string  `json:"passenger_ids"`
-	MaxPassengers int       `json:"max_passengers"`
-	Date          time.Time `json:"date"`
+	UserID        string
+	RideID        string
+	StartingPoint *string
+	Destination   *string
+	Price         *float64
+	Date          *time.Time
+	StartTime     *time.Time
+	EndTime       *time.Time
+	DriverID      *string
+	PassengerIDs  []string
+	MaxPassengers *int
+	Finished      *bool
 }
 
 func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
@@ -142,50 +147,58 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
 
-	if request.StartingPoint != "" {
-		ride.StartingPoint = request.StartingPoint
+	if request.StartingPoint != nil {
+		ride.StartingPoint = *request.StartingPoint
 	}
 
-	if request.Destination != "" {
-		ride.Destination = request.Destination
+	if request.Destination != nil {
+		ride.Destination = *request.Destination
 	}
 
-	if request.Price > 0 {
-		ride.Price = utils.ToEUR(request.Price)
+	if request.Price != nil {
+		ride.Price = utils.ToEUR(*request.Price)
 	}
 
-	if request.Date.Before(time.Now()) {
+	/*if request.Date.Before(time.Now()) {
 		return nil, NewApplicationException(http.StatusBadRequest, errors.New("date must be today or in the future"))
 	}
 
 	if request.StartTime.Before(time.Now()) {
 		return nil, NewApplicationException(http.StatusBadRequest, errors.New("start time must be in the future"))
 	}
-
-	if !sameDay(request.StartTime, request.Date) {
-		return nil, NewApplicationException(http.StatusBadRequest, errors.New("start time must be on the same calendar day as the date"))
+	*/
+	if request.Date != nil {
+		ride.Date = *request.Date
 	}
 
-	if request.EndTime.Before(request.StartTime) {
-		return nil, NewApplicationException(http.StatusBadRequest, errors.New("end time must be after start time"))
+	if request.StartTime != nil {
+		ride.StartTime = *request.StartTime
+
+		if request.Date != nil && !sameDay(*request.StartTime, *request.Date) {
+			return nil, NewApplicationException(http.StatusBadRequest, errors.New("start time must be on the same calendar day as the date"))
+		}
 	}
 
-	ride.Date = request.Date
-	ride.StartTime = request.StartTime
-	ride.EndTime = request.EndTime
+	if request.EndTime != nil {
+		ride.EndTime = *request.EndTime
+
+		if request.StartTime != nil && request.EndTime.Before(*request.StartTime) {
+			return nil, NewApplicationException(http.StatusBadRequest, errors.New("end time must be after start time"))
+		}
+	}
 
 	var newDriver *models.User
 
-	if request.DriverID != "" {
-		newDriver, err = a.userRepository.GetById(request.DriverID)
+	if request.DriverID != nil {
+		newDriver, err = a.userRepository.GetById(*request.DriverID)
 		if err != nil {
 			return nil, NewApplicationException(http.StatusBadRequest, err)
 		}
-		ride.DriverID = request.DriverID
+		ride.DriverID = *request.DriverID
 		ride.Driver = newDriver
 	}
 
-	if len(request.PassengerIDs) > 0 {
+	if request.PassengerIDs != nil && len(request.PassengerIDs) > 0 {
 		passengers, appErr := a.checkPassengerExistence(request.PassengerIDs)
 		if appErr != nil {
 			return nil, appErr
@@ -193,8 +206,50 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 		ride.Passengers = passengers
 	}
 
-	if request.MaxPassengers > 0 {
-		ride.MaxPassengers = request.MaxPassengers
+	if request.MaxPassengers != nil {
+		ride.MaxPassengers = *request.MaxPassengers
+	}
+
+	if request.Finished != nil {
+		ride.Finished = *request.Finished
+
+		err = godotenv.Load()
+		if err != nil {
+			log.Println("Error loading .env file...")
+		}
+
+		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+
+		var confirmationToken string
+
+		for _, passenger := range ride.Passengers {
+			confirmationToken, err = utils.GenerateToken(passenger.ID)
+			if err != nil {
+				fmt.Printf("failed to generate token for passenger %s: %v\n", passenger.ID, err)
+				continue
+			}
+
+			confirmationLink := fmt.Sprintf(
+				"%s/users/leave-rating?rideId=%s&driverId=%s&passengerId=%s&token=%s",
+				frontendUrl,
+				ride.ID,
+				ride.Driver.ID,
+				passenger.ID,
+				confirmationToken,
+			)
+			emailBody := fmt.Sprintf(`
+			Hey! Your ride with %s from %s to %s has finished.
+
+			Click here to leave a rating: %s
+		`, ride.Driver.FirstName, ride.StartingPoint, ride.Destination, confirmationLink)
+
+			go func(emailAddr, body string) {
+				if err = email.SendEmail(emailAddr, email.ReservationMadeSubject, body); err != nil {
+					fmt.Printf("failed to send email: %v\n", err)
+				}
+			}(passenger.Email, emailBody)
+		}
+
 	}
 
 	ride, err = a.rideRepository.Update(ride)

@@ -146,12 +146,12 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		}
 
 		emailBody := fmt.Sprintf(
-			"Great news! %s %s has confirmed their reservation on your ride on %s from %s to %s.",
+			"Great news! %s %s has confirmed your reservation on their ride on %s from %s to %s.",
 			passenger.FirstName, passenger.LastName, formattedDate, ride.StartingPoint, ride.Destination,
 		)
 
 		go func() {
-			if err = email.SendEmail(driver.Email, email.ReservationConfirmedSubject, emailBody); err != nil {
+			if err = email.SendEmail(passenger.Email, email.ReservationConfirmedSubject, emailBody); err != nil {
 				fmt.Printf("Failed to send email: %v\n", err)
 			}
 		}()
@@ -170,7 +170,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		}
 
 		emailBody := fmt.Sprintf(
-			"User %s %s has cancelled their reservation on your ride on %s from %s to %s.",
+			"User %s %s has declined your reservation on their ride on %s from %s to %s.",
 			passenger.FirstName, passenger.LastName, formattedDate, ride.StartingPoint, ride.Destination,
 		)
 

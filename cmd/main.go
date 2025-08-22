@@ -159,6 +159,8 @@ func main() {
 		apiRoutes.DELETE("/rides/:id", rideController.DeleteRide)
 		apiRoutes.GET("/rides/search", rideController.SearchRides)
 		apiRoutes.GET("/rides/:id/reservations", rideController.GetRideReservations)
+		apiRoutes.PATCH("/rides/:id/finish", rideController.FinishRide)
+		/*apiRoutes.GET("/rides/:id/cancel", rideController.CancelRide)*/
 
 		/*rating APIs*/
 		apiRoutes.GET("/ratings", ratingController.GetRatings)

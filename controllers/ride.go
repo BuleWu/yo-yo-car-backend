@@ -145,3 +145,29 @@ func (c *Ride) GetRideReservations(ctx *gin.Context) {
 
 	c.returnJSON(ctx, reservations, http.StatusOK)
 }
+
+// FinishRide PATCH /rides/:id/finish
+func (c *Ride) FinishRide(ctx *gin.Context) {
+	rideId := ctx.Param("id")
+	userID := ctx.GetString("user_id")
+
+	_, appErr := c.rideApplication.GetRideById(rideId)
+	if appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	finished := true
+	request := applications.UpdateRideRequest{
+		UserID:   userID,
+		RideID:   rideId,
+		Finished: &finished,
+	}
+
+	if _, appErr = c.rideApplication.UpdateRide(&request); appErr != nil {
+		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, "ok", http.StatusOK)
+}
