@@ -237,14 +237,14 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 				passenger.ID,
 				confirmationToken,
 			)
-			emailBody := fmt.Sprintf(`
+			emailBody := strings.TrimSpace(fmt.Sprintf(`
 			Hey! Your ride with %s from %s to %s has finished.
 
 			Click here to leave a rating: %s
-		`, ride.Driver.FirstName, ride.StartingPoint, ride.Destination, confirmationLink)
+		`, ride.Driver.FirstName, ride.StartingPoint, ride.Destination, confirmationLink))
 
 			go func(emailAddr, body string) {
-				if err = email.SendEmail(emailAddr, email.ReservationMadeSubject, body); err != nil {
+				if err = email.SendEmail(emailAddr, email.RideFinishedSubject, body); err != nil {
 					fmt.Printf("failed to send email: %v\n", err)
 				}
 			}(passenger.Email, emailBody)

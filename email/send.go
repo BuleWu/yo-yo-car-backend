@@ -18,6 +18,7 @@ const (
 	ReservationMadeSubject      string = "Reservation made"
 	ReservationConfirmedSubject string = "Reservation confirmed"
 	ReservationCancelledSubject string = "Reservation cancelled"
+	RideFinishedSubject         string = "Ride finished"
 )
 
 func SendEmail(to string, subject string, body string) error {
