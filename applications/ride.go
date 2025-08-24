@@ -16,18 +16,18 @@ import (
 )
 
 type RideDTO struct {
-	ID            string         `json:"id"`
-	StartingPoint string         `json:"starting_point"`
-	Destination   string         `json:"destination"`
-	StartTime     time.Time      `json:"startTime"`
-	EndTime       time.Time      `json:"endTime"`
-	Price         float64        `json:"price"`
-	Date          time.Time      `json:"date"`
-	DriverID      string         `json:"driver_id"`
-	Driver        *models.User   `json:"driver"`
-	Passengers    []*models.User `json:"passengers"`
-	MaxPassengers int            `json:"max_passengers"`
-	Finished      bool           `json:"finished"`
+	ID            string            `json:"id"`
+	StartingPoint string            `json:"starting_point"`
+	Destination   string            `json:"destination"`
+	StartTime     time.Time         `json:"startTime"`
+	EndTime       time.Time         `json:"endTime"`
+	Price         float64           `json:"price"`
+	Date          time.Time         `json:"date"`
+	DriverID      string            `json:"driver_id"`
+	Driver        *models.User      `json:"driver"`
+	Passengers    []*models.User    `json:"passengers"`
+	MaxPassengers int               `json:"max_passengers"`
+	Status        models.RideStatus `json:"status"`
 }
 
 func NewRideApplication(
@@ -138,7 +138,6 @@ type UpdateRideRequest struct {
 	DriverID      *string
 	PassengerIDs  []string
 	MaxPassengers *int
-	Finished      *bool
 	Status        models.RideStatus
 }
 
@@ -386,7 +385,7 @@ func ToRideDTO(ride *models.Ride) *RideDTO {
 		Driver:        ride.Driver,
 		Passengers:    ride.Passengers,
 		MaxPassengers: ride.MaxPassengers,
-		Finished:      ride.Finished,
+		Status:        ride.Status,
 		Date:          ride.Date,
 	}
 }
