@@ -152,19 +152,13 @@ func (c *Ride) FinishRide(ctx *gin.Context) {
 	rideId := ctx.Param("id")
 	userID := ctx.GetString("user_id")
 
-	_, appErr := c.rideApplication.GetRideById(rideId)
+	ride, appErr := c.rideApplication.GetRideById(rideId)
 	if appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}
 
-	request := applications.UpdateRideRequest{
-		UserID: userID,
-		RideID: rideId,
-		Status: models.RideFinished,
-	}
-
-	if _, appErr = c.rideApplication.UpdateRide(&request); appErr != nil {
+	if appErr = c.rideApplication.FinishRide(rideId); appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
 	}

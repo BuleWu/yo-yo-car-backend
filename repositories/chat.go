@@ -20,6 +20,8 @@ type ChatRepository interface {
 	GetUserChats(userID string) ([]models.Chat, error)
 	GetChatBetweenUsers(user1ID, user2ID string) (*models.Chat, error)
 	GetByUsersAndRide(user1ID, user2ID, rideID string) (*models.Chat, error)
+	GetByRideId(rideId string) (*[]models.Chat, error)
+	DeleteByRideId(rideID string) error
 }
 
 // Chat repository implementation
@@ -68,7 +70,13 @@ func (repo *Chat) Delete(ID string) error {
 func (repo *Chat) GetUserChats(userID string) ([]models.Chat, error) {
 	db := repo.conn.GetConnection()
 	var chats []models.Chat
-	if err := db.Preload("Ride").Preload("User1").Preload("User2").Where("user1_id = ? OR user2_id = ?", userID, userID).Find(&chats).Error; err != nil {
+	if err := db.
+		Preload("Ride").
+		Preload("User1").
+		Preload("User2").
+		Where("user1_id = ? OR user2_id = ?", userID, userID).
+		Order("created_at DESC").
+		Find(&chats).Error; err != nil {
 		return nil, err
 	}
 	return chats, nil
@@ -96,3 +104,20 @@ func (repo *Chat) GetByUsersAndRide(user1ID, user2ID, rideID string) (*models.Ch
 
 	return &chat, nil
 }
+
+func (repo *Chat) GetByRideId(rideId string) (*[]models.Chat, error) {
+	db := repo.conn.GetConnection()
+	var chats []models.Chat
+
+	if err := db.Where("ride_id = ?", rideId).
+		Find(&chats).Error; err != nil {
+		return nil, err
+	}
+
+	return &chats, nil
+}
+
+func (repo *Chat) DeleteByRideId(rideID string) error {
+	db := repo.conn.GetConnection()
+	return db.Where("ride_id = ?", rideID).Delete(&models.Chat{}).Error
+

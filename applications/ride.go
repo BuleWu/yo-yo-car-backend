@@ -34,11 +34,14 @@ func NewRideApplication(
 	rideRepository repositories.RideRepository,
 	userRepository repositories.UserRepository,
 	reservationRepository repositories.ReservationRepository,
+	chatRepository repositories.ChatRepository,
+
 ) *Ride {
 	return &Ride{
 		rideRepository:        rideRepository,
 		userRepository:        userRepository,
 		reservationRepository: reservationRepository,
+		chatRepository:        chatRepository,
 	}
 }
 
@@ -47,6 +50,7 @@ type Ride struct {
 	rideRepository        repositories.RideRepository
 	userRepository        repositories.UserRepository
 	reservationRepository repositories.ReservationRepository
+	chatRepository        repositories.ChatRepository
 }
 
 func (a *Ride) GetRides() ([]*RideDTO, Exception) {
@@ -305,6 +309,32 @@ func (a *Ride) GetRideReservations(rideID string) ([]*models.Reservation, Except
 	}
 
 	return reservations, nil
+}
+
+func (a *Ride) FinishRide(rideId string) *ApplicationException {
+	ride, err := a.rideRepository.GetById(rideId)
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	ride.Status = models.RideFinished
+	if _, err = a.rideRepository.Update(ride); err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	chats, err := a.chatRepository.GetByRideId(rideId)
+	if err != nil {
+		fmt.Printf("error trying to find chats for ride with id: %s\n", rideId)
+		return nil
+	}
+
+	if chats != nil {
+		if err = a.chatRepository.DeleteByRideId(rideId); err != nil {
+			return NewApplicationException(http.StatusInternalServerError, err)
+		}
+	}
+
+	return nil
 }
 
 func (a *Ride) CancelRide(rideID string) *ApplicationException {

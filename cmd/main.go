@@ -59,6 +59,7 @@ func main() {
 		repositories.NewRideRepository(conn),
 		repositories.NewUserRepository(conn),
 		repositories.NewReservationRepository(conn),
+		repositories.NewChatRepository(conn),
 	)
 
 	ratingApplication := applications.NewRatingApplication(
