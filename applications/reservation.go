@@ -45,7 +45,7 @@ func (a *Reservation) CreateReservation(request *CreateReservationRequest) (*mod
 		}
 	}
 
-	reservation, err := a.reservationRepository.Persist(models.NewReservation(request.UserID, request.RideID, models.Pending))
+	reservation, err := a.reservationRepository.Persist(models.NewReservation(request.UserID, request.RideID, models.ReservationPending))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
@@ -111,7 +111,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
 
-	if reservation.Status == models.Completed && request.Status == models.Cancelled {
+	if reservation.Status == models.ReservationCompleted && request.Status == models.ReservationCancelled {
 		return nil, NewApplicationException(http.StatusBadRequest, fmt.Errorf("cannot cancel a reservation on a ride which is already completed"))
 	}
 
@@ -135,7 +135,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 	formattedDate := ride.StartTime.Format("02 Jan 2006 at 15:04")
 
 	switch updated.Status {
-	case models.Confirmed:
+	case models.ReservationConfirmed:
 		if ride.Passengers == nil {
 			ride.Passengers = make([]*models.User, 0)
 		}
@@ -156,7 +156,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 			}
 		}()
 
-	case models.Cancelled:
+	case models.ReservationCancelled:
 		var updatedPassengers []*models.User
 		for _, p := range ride.Passengers {
 			if p.ID != passenger.ID {
@@ -199,7 +199,7 @@ func (a *Reservation) DeleteReservation(id string) Exception {
 
 func isValidReservationStatus(status models.ReservationStatus) bool {
 	switch status {
-	case models.Pending, models.Confirmed, models.Cancelled, models.Completed:
+	case models.ReservationPending, models.ReservationConfirmed, models.ReservationCancelled, models.ReservationCompleted:
 		return true
 	default:
 		return false

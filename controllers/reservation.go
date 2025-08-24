@@ -107,7 +107,7 @@ func (c *Reservation) ConfirmReservation(ctx *gin.Context) {
 
 	var request applications.UpdateReservationRequest
 	request.ReservationID = ctx.Param("id")
-	request.Status = models.Confirmed
+	request.Status = models.ReservationConfirmed
 	request.ConfirmationToken = confirmationToken
 
 	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
@@ -133,7 +133,7 @@ func (c *Reservation) DeclineReservation(ctx *gin.Context) {
 
 	var request applications.UpdateReservationRequest
 	request.ReservationID = ctx.Param("id")
-	request.Status = models.Cancelled
+	request.Status = models.ReservationCancelled
 	request.ConfirmationToken = confirmationToken
 
 	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")

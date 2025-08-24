@@ -3,10 +3,10 @@ package models
 type ReservationStatus string
 
 const (
-	Pending   ReservationStatus = "pending"
-	Confirmed ReservationStatus = "confirmed"
-	Cancelled ReservationStatus = "cancelled"
-	Completed ReservationStatus = "completed"
+	ReservationPending   ReservationStatus = "pending"
+	ReservationConfirmed ReservationStatus = "confirmed"
+	ReservationCancelled ReservationStatus = "cancelled"
+	ReservationCompleted ReservationStatus = "completed"
 )
 
 // NewReservation constructor for creating a new reservation instance
