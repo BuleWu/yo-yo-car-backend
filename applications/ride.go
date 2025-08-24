@@ -116,7 +116,7 @@ func (a *Ride) CreateRide(request *CreateRideRequest) (*RideDTO, Exception) {
 
 	price := utils.ToEUR(request.Price)
 
-	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, request.StartTime, request.EndTime, price, request.DriverID, driver, false, nil, request.MaxPassengers, request.Date))
+	ride, err := a.rideRepository.Persist(models.NewRide(request.StartingPoint, request.Destination, request.StartTime, request.EndTime, price, request.DriverID, driver, models.RidePlanned, nil, request.MaxPassengers, request.Date))
 	if err != nil {
 		return nil, NewApplicationException(http.StatusInternalServerError, err)
 	}
@@ -139,6 +139,7 @@ type UpdateRideRequest struct {
 	PassengerIDs  []string
 	MaxPassengers *int
 	Finished      *bool
+	Status        models.RideStatus
 }
 
 func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
@@ -210,8 +211,8 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 		ride.MaxPassengers = *request.MaxPassengers
 	}
 
-	if request.Finished != nil {
-		ride.Finished = *request.Finished
+	if request.Status == models.RideFinished {
+		ride.Status = request.Status
 
 		err = godotenv.Load()
 		if err != nil {
@@ -305,6 +306,51 @@ func (a *Ride) GetRideReservations(rideID string) ([]*models.Reservation, Except
 	}
 
 	return reservations, nil
+}
+
+func (a *Ride) CancelRide(rideID string) *ApplicationException {
+	var err error
+	var ride *models.Ride
+	ride, err = a.rideRepository.GetById(rideID)
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	ride.Status = models.RideCancelled
+	if _, err = a.rideRepository.Update(ride); err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	for _, passenger := range ride.Passengers {
+		emailBody := fmt.Sprintf(`
+			Hey %s! Your ride with %s from %s to %s has been cancelled.
+
+			We apologize for the inconvenience.
+		`, passenger.FirstName, ride.Driver.FirstName, ride.StartingPoint, ride.Destination)
+
+		go func(emailAddr, body string) {
+			err = email.SendEmail(emailAddr, email.RideCancelledSubject, body)
+			if err != nil {
+				fmt.Printf("failed to send cancellation email to %s: %v\n", emailAddr, err)
+			}
+		}(passenger.Email, emailBody)
+	}
+
+	var reservations []*models.Reservation
+	reservations, err = a.reservationRepository.GetByRideId(rideID)
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	for _, reservation := range reservations {
+		reservation.Status = models.ReservationCancelled
+		_, err = a.reservationRepository.Update(reservation)
+		if err != nil {
+			return NewApplicationException(http.StatusInternalServerError, err)
+		}
+	}
+
+	return nil
 }
 
 func (a *Ride) checkPassengerExistence(PassengerIDs []string) ([]*models.User, *ApplicationException) {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/core/utils"
+	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 )
 
@@ -157,11 +158,10 @@ func (c *Ride) FinishRide(ctx *gin.Context) {
 		return
 	}
 
-	finished := true
 	request := applications.UpdateRideRequest{
-		UserID:   userID,
-		RideID:   rideId,
-		Finished: &finished,
+		UserID: userID,
+		RideID: rideId,
+		Status: models.RideFinished,
 	}
 
 	if _, appErr = c.rideApplication.UpdateRide(&request); appErr != nil {
@@ -170,4 +170,15 @@ func (c *Ride) FinishRide(ctx *gin.Context) {
 	}
 
 	c.returnJSON(ctx, "ok", http.StatusOK)
+}
+
+// CancelRide PATCH /rides/:id/cancel
+func (c *Ride) CancelRide(ctx *gin.Context) {
+	err := c.rideApplication.CancelRide(ctx.Param("id"))
+	if err != nil {
+		c.returnJSON(ctx, utils.NewHttpError(err.GetMessage()), err.GetCode())
+		return
+	}
+
+	c.returnJSON(ctx, "Ride cancelled and passengers notified", http.StatusOK)
 }

@@ -5,8 +5,17 @@ import (
 	"zavrsni/yo-yo-car/core/utils"
 )
 
+type RideStatus string
+
+const (
+	RidePlanned   RideStatus = "planned"
+	RideOngoing   RideStatus = "ongoing"
+	RideCancelled RideStatus = "cancelled"
+	RideFinished  RideStatus = "finished"
+)
+
 // NewRide Ride constructor
-func NewRide(startingPoint string, destination string, startTime time.Time, endTime time.Time, price utils.EUR, driverId string, driver *User, finished bool, passengers []*User, maxPassengers int, date time.Time) *Ride {
+func NewRide(startingPoint string, destination string, startTime time.Time, endTime time.Time, price utils.EUR, driverId string, driver *User, status RideStatus, passengers []*User, maxPassengers int, date time.Time) *Ride {
 	return &Ride{
 		StartingPoint: startingPoint,
 		Destination:   destination,
@@ -15,7 +24,7 @@ func NewRide(startingPoint string, destination string, startTime time.Time, endT
 		Price:         price,
 		DriverID:      driverId,
 		Driver:        driver,
-		Finished:      finished,
+		Status:        status,
 		Passengers:    passengers,
 		MaxPassengers: maxPassengers,
 		Date:          date,
@@ -41,4 +50,6 @@ type Ride struct {
 	MaxPassengers int  `json:"max_passengers"`
 
 	Date time.Time `json:"date"`
+
+	Status RideStatus `json:"status"`
 }
