@@ -120,4 +120,4 @@ func (repo *Chat) GetByRideId(rideId string) (*[]models.Chat, error) {
 func (repo *Chat) DeleteByRideId(rideID string) error {
 	db := repo.conn.GetConnection()
 	return db.Where("ride_id = ?", rideID).Delete(&models.Chat{}).Error
-
+}

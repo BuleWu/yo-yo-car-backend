@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
 	"zavrsni/yo-yo-car/core/utils"
-	"zavrsni/yo-yo-car/models"
 	"zavrsni/yo-yo-car/repositories"
 )
 
@@ -150,9 +149,8 @@ func (c *Ride) GetRideReservations(ctx *gin.Context) {
 // FinishRide PATCH /rides/:id/finish
 func (c *Ride) FinishRide(ctx *gin.Context) {
 	rideId := ctx.Param("id")
-	userID := ctx.GetString("user_id")
 
-	ride, appErr := c.rideApplication.GetRideById(rideId)
+	_, appErr := c.rideApplication.GetRideById(rideId)
 	if appErr != nil {
 		c.returnJSON(ctx, utils.NewHttpError(appErr.GetMessage()), appErr.GetCode())
 		return
