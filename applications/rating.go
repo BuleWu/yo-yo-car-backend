@@ -1,6 +1,7 @@
 package applications
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"zavrsni/yo-yo-car/models"
@@ -64,6 +65,13 @@ type CreateRatingRequest struct {
 }
 
 func (a *Rating) CreateRating(request *CreateRatingRequest) (*models.Rating, Exception) {
+	var rating *models.Rating
+	rating, _ = a.ratingRepository.GetByRaterAndRide(request.RaterID, request.RideID)
+
+	if rating != nil {
+		return nil, NewApplicationException(http.StatusBadRequest, fmt.Errorf("rating on this ride from this user already exists"))
+	}
+
 	rating, err := a.ratingRepository.Persist(models.NewRating(request.Value, request.RaterID, request.RatedUserID, request.RideID, request.Comment))
 
 	if err != nil {

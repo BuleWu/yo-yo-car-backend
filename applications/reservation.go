@@ -146,8 +146,8 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		}
 
 		emailBody := fmt.Sprintf(
-			"Great news! %s %s has confirmed your reservation on their ride on %s from %s to %s.",
-			passenger.FirstName, passenger.LastName, formattedDate, ride.StartingPoint, ride.Destination,
+			"Great news! %s has confirmed your reservation on their ride on %s from %s to %s.",
+			driver.FirstName, formattedDate, ride.StartingPoint, ride.Destination,
 		)
 
 		go func() {

@@ -18,6 +18,7 @@ type RatingRepository interface {
 	Persist(rating *models.Rating) (*models.Rating, error)
 	Update(rating *models.Rating) (*models.Rating, error)
 	Delete(rating *models.Rating) error
+	GetByRaterAndRide(raterID string, rideID string) (*models.Rating, error)
 }
 
 type Rating struct {
@@ -97,4 +98,17 @@ func (repo *Rating) Delete(rating *models.Rating) error {
 	}
 
 	return nil
+}
+
+func (repo *Rating) GetByRaterAndRide(raterID string, rideID string) (*models.Rating, error) {
+	db := repo.conn.GetConnection()
+	var rating models.Rating
+
+	if err := db.
+		Where("rater_id = ? AND ride_id = ?", raterID, rideID).
+		First(&rating).Error; err != nil {
+		return nil, err
+	}
+
+	return &rating, nil
 }

@@ -97,20 +97,20 @@ func (c *Reservation) DeleteReservation(ctx *gin.Context) {
 }
 
 func (c *Reservation) ConfirmReservation(ctx *gin.Context) {
-	confirmationToken := ctx.Query("token")
+	/*confirmationToken := ctx.Query("token")
 	if confirmationToken == "" {
-		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
 		failedRedirect := fmt.Sprintf("%s/reservation-confirm?status=invalid", frontendUrl)
 		ctx.Redirect(http.StatusTemporaryRedirect, failedRedirect)
 		return
-	}
+	}*/
+
+	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+	confirmationToken := ""
 
 	var request applications.UpdateReservationRequest
 	request.ReservationID = ctx.Param("id")
 	request.Status = models.ReservationConfirmed
 	request.ConfirmationToken = confirmationToken
-
-	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
 
 	if _, appErr := c.reservationApplication.UpdateReservation(&request); appErr != nil {
 		failedRedirect := fmt.Sprintf("%s/reservation-confirm?status=failed", frontendUrl)
