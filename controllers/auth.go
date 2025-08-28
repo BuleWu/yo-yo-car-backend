@@ -91,7 +91,6 @@ func (c Auth) Register(ctx *gin.Context) {
 	}
 
 	user, _ := c.userApplication.GetUserByEmail(credentials.Email)
-
 	if user != nil {
 		c.returnJSON(ctx, utils.NewHttpError("a user with this email already exists"), http.StatusNotAcceptable)
 		return

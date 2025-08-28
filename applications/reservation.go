@@ -111,7 +111,7 @@ func (a *Reservation) UpdateReservation(request *UpdateReservationRequest) (*mod
 		return nil, NewApplicationException(http.StatusNotFound, err)
 	}
 
-	if reservation.Status == models.ReservationCompleted && request.Status == models.ReservationCancelled {
+	if request.Status == models.ReservationCancelled {
 		return nil, NewApplicationException(http.StatusBadRequest, fmt.Errorf("cannot cancel a reservation on a ride which is already completed"))
 	}
 
@@ -199,7 +199,7 @@ func (a *Reservation) DeleteReservation(id string) Exception {
 
 func isValidReservationStatus(status models.ReservationStatus) bool {
 	switch status {
-	case models.ReservationPending, models.ReservationConfirmed, models.ReservationCancelled, models.ReservationCompleted:
+	case models.ReservationPending, models.ReservationConfirmed, models.ReservationCancelled:
 		return true
 	default:
 		return false

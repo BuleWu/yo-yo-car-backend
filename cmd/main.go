@@ -118,12 +118,15 @@ func main() {
 	// route setup
 	r := gin.Default()
 
+	allowedOrigins := make([]string, 0)
+	allowedOrigins = append(allowedOrigins, runtimebag.GetEnvString("FRONTEND_URL", ""))
+
 	config := cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
-		AllowAllOrigins:  true,
+		AllowOrigins:     allowedOrigins,
 	}
 
 	r.Use(cors.New(config))
@@ -137,8 +140,8 @@ func main() {
 	}
 
 	apiRoutes := r.Group("/api")
-	apiRoutes.GET("/reservations/:id/confirm", reservationController.ConfirmReservation)
-	apiRoutes.GET("/reservations/:id/decline", reservationController.DeclineReservation)
+	apiRoutes.PATCH("/reservations/:id/confirm", reservationController.ConfirmReservation)
+	apiRoutes.PATCH("/reservations/:id/decline", reservationController.DeclineReservation)
 
 	apiRoutes.Use(middleware.AuthenticationMiddleware())
 	{
@@ -160,8 +163,9 @@ func main() {
 		apiRoutes.DELETE("/rides/:id", rideController.DeleteRide)
 		apiRoutes.GET("/rides/search", rideController.SearchRides)
 		apiRoutes.GET("/rides/:id/reservations", rideController.GetRideReservations)
+		apiRoutes.PATCH("/rides/:id/start", rideController.StartRide)
 		apiRoutes.PATCH("/rides/:id/finish", rideController.FinishRide)
-		apiRoutes.GET("/rides/:id/cancel", rideController.CancelRide)
+		apiRoutes.PATCH("/rides/:id/cancel", rideController.CancelRide)
 
 		/*rating APIs*/
 		apiRoutes.GET("/ratings", ratingController.GetRatings)

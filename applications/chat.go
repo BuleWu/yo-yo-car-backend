@@ -119,11 +119,11 @@ func (a *Chat) SendMessage(request *SendMessageRequest) (*models.Message, Except
 		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("chat with id %s doesn't exist", request.ChatID))
 	}
 
-	if _, err := a.userRepository.GetById(request.SenderID); err != nil {
+	if _, err = a.userRepository.GetById(request.SenderID); err != nil {
 		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s doesn't exist", request.SenderID))
 	}
 
-	if _, err := a.userRepository.GetById(request.ReceiverID); err != nil {
+	if _, err = a.userRepository.GetById(request.ReceiverID); err != nil {
 		return nil, NewApplicationException(http.StatusNotFound, fmt.Errorf("user with id %s doesn't exist", request.ReceiverID))
 	}
 

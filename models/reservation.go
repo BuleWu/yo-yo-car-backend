@@ -6,7 +6,6 @@ const (
 	ReservationPending   ReservationStatus = "pending"
 	ReservationConfirmed ReservationStatus = "confirmed"
 	ReservationCancelled ReservationStatus = "cancelled"
-	ReservationCompleted ReservationStatus = "completed"
 )
 
 // NewReservation constructor for creating a new reservation instance

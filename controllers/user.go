@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"zavrsni/yo-yo-car/applications"
@@ -81,6 +82,7 @@ func (c *User) UploadProfilePicture(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
 	file, header, err := ctx.Request.FormFile("file")
+	fmt.Println("File: ", file)
 	if err != nil {
 		c.returnJSON(ctx, utils.NewHttpError("invalid file upload"), http.StatusBadRequest)
 		return

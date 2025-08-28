@@ -3,8 +3,6 @@ package applications
 import (
 	"errors"
 	"fmt"
-	"github.com/joho/godotenv"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -214,48 +212,6 @@ func (a *Ride) UpdateRide(request *UpdateRideRequest) (*RideDTO, Exception) {
 		ride.MaxPassengers = *request.MaxPassengers
 	}
 
-	if request.Status == models.RideFinished {
-		ride.Status = request.Status
-
-		err = godotenv.Load()
-		if err != nil {
-			log.Println("Error loading .env file...")
-		}
-
-		frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
-
-		var confirmationToken string
-
-		for _, passenger := range ride.Passengers {
-			confirmationToken, err = utils.GenerateToken(passenger.ID)
-			if err != nil {
-				fmt.Printf("failed to generate token for passenger %s: %v\n", passenger.ID, err)
-				continue
-			}
-
-			confirmationLink := fmt.Sprintf(
-				"%s/users/leave-rating?rideId=%s&driverId=%s&passengerId=%s&token=%s",
-				frontendUrl,
-				ride.ID,
-				ride.Driver.ID,
-				passenger.ID,
-				confirmationToken,
-			)
-			emailBody := strings.TrimSpace(fmt.Sprintf(`
-			Hey! Your ride with %s from %s to %s has finished.
-
-			Click here to leave a rating: %s
-		`, ride.Driver.FirstName, ride.StartingPoint, ride.Destination, confirmationLink))
-
-			go func(emailAddr, body string) {
-				if err = email.SendEmail(emailAddr, email.RideFinishedSubject, body); err != nil {
-					fmt.Printf("failed to send email: %v\n", err)
-				}
-			}(passenger.Email, emailBody)
-		}
-
-	}
-
 	ride, err = a.rideRepository.Update(ride)
 
 	if err != nil {
@@ -311,6 +267,20 @@ func (a *Ride) GetRideReservations(rideID string) ([]*models.Reservation, Except
 	return reservations, nil
 }
 
+func (a *Ride) StartRide(rideId string) Exception {
+	ride, err := a.rideRepository.GetById(rideId)
+	if err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	ride.Status = models.RideOngoing
+	if _, err = a.rideRepository.Update(ride); err != nil {
+		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	return nil
+}
+
 func (a *Ride) FinishRide(rideId string) Exception {
 	ride, err := a.rideRepository.GetById(rideId)
 	if err != nil {
@@ -333,6 +303,38 @@ func (a *Ride) FinishRide(rideId string) Exception {
 		}
 	}
 
+	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
+
+	var confirmationToken string
+
+	for _, passenger := range ride.Passengers {
+		confirmationToken, err = utils.GenerateToken(passenger.ID)
+		if err != nil {
+			fmt.Printf("failed to generate token for passenger %s: %v\n", passenger.ID, err)
+			continue
+		}
+
+		confirmationLink := fmt.Sprintf(
+			"%s/users/leave-rating?rideId=%s&driverId=%s&passengerId=%s&token=%s",
+			frontendUrl,
+			ride.ID,
+			ride.Driver.ID,
+			passenger.ID,
+			confirmationToken,
+		)
+		emailBody := strings.TrimSpace(fmt.Sprintf(`
+			Hey! Your ride with %s from %s to %s has finished.
+
+			Click here to leave a rating: %s
+		`, ride.Driver.FirstName, ride.StartingPoint, ride.Destination, confirmationLink))
+
+		go func(emailAddr, body string) {
+			if err = email.SendEmail(emailAddr, email.RideFinishedSubject, body); err != nil {
+				fmt.Printf("failed to send email: %v\n", err)
+			}
+		}(passenger.Email, emailBody)
+	}
+
 	return nil
 }
 
@@ -342,6 +344,10 @@ func (a *Ride) CancelRide(rideID string) *ApplicationException {
 	ride, err = a.rideRepository.GetById(rideID)
 	if err != nil {
 		return NewApplicationException(http.StatusInternalServerError, err)
+	}
+
+	if ride.Status == models.RideCancelled || ride.Status == models.RideFinished {
+		return NewApplicationException(http.StatusConflict, fmt.Errorf("ride with status %s cannot be cancelled", ride.Status))
 	}
 
 	ride.Status = models.RideCancelled
