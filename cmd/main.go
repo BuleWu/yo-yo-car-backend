@@ -140,8 +140,8 @@ func main() {
 	}
 
 	apiRoutes := r.Group("/api")
-	apiRoutes.PATCH("/reservations/:id/confirm", reservationController.ConfirmReservation)
-	apiRoutes.PATCH("/reservations/:id/decline", reservationController.DeclineReservation)
+	apiRoutes.GET("/reservations/:id/confirm", reservationController.ConfirmReservation)
+	apiRoutes.GET("/reservations/:id/decline", reservationController.DeclineReservation)
 
 	apiRoutes.Use(middleware.AuthenticationMiddleware())
 	{

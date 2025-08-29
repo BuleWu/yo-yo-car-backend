@@ -133,8 +133,8 @@ func (u *User) UploadProfilePicture(userID string, file multipart.File, header *
 }
 
 type ChangePasswordRequest struct {
-	CurrentPassword string `json:"currentPassword" binding:"required"`
-	NewPassword     string `json:"newPassword" binding:"required"`
+	CurrentPassword string `json:"current_password" binding:"required"`
+	NewPassword     string `json:"new_password" binding:"required"`
 }
 
 func (a *User) ChangePassword(userID string, request *ChangePasswordRequest) Exception {

@@ -103,7 +103,6 @@ func (c *Reservation) ConfirmReservation(ctx *gin.Context) {
 		ctx.Redirect(http.StatusTemporaryRedirect, failedRedirect)
 		return
 	}*/
-
 	frontendUrl := runtimebag.GetEnvString("FRONTEND_URL", "")
 	confirmationToken := ""
 

@@ -55,6 +55,7 @@ func (repo *Rating) GetByUserId(userId string) (*[]models.Rating, error) {
 		Preload("RatedUser").
 		Preload("Rater").
 		Preload("Ride").
+		Order("created_at DESC").
 		Find(&ratings).Error; err != nil {
 		return nil, err
 	}
